@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/components/theme-provider";
 import {
   Menu,
   Sun,
@@ -199,7 +199,7 @@ export function Navbar() {
             asChild
             className="hidden h-9 sm:inline-flex"
           >
-            <Link href={contactInfo.enrollForm} target="_blank" rel="noopener noreferrer">
+           <Link href="/login">
               Sign In
             </Link>
           </Button>
@@ -208,7 +208,7 @@ export function Navbar() {
             asChild
             className="hidden h-9 bg-accent text-accent-foreground hover:bg-accent/85 sm:inline-flex"
           >
-            <Link href={contactInfo.enrollForm} target="_blank" rel="noopener noreferrer">
+              <Link href="/signup">
               <Music className="size-4" /> Sign Up
             </Link>
           </Button>

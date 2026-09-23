@@ -13,6 +13,7 @@ import { Contact } from "@/components/bestcoach/contact";
 import { Footer } from "@/components/bestcoach/footer";
 import { AIAgent } from "@/components/bestcoach/ai-agent";
 
+
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col bg-background">

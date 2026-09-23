@@ -1,7 +1,9 @@
+//Layout.tsx
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/components/ui/toaster";            // radix (for useToast)
+import { Toaster as SonnerToaster } from "@/components/ui/sonner"; // sonner
 import { ThemeProvider } from "@/components/theme-provider";
 
 const geistSans = Geist({
@@ -65,7 +67,8 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
-          <Toaster />
+          <Toaster />            {/* radix — for useToast() in existing forms */}
+          <SonnerToaster richColors position="top-right" />  {/* sonner — for SignIn */}
         </ThemeProvider>
       </body>
     </html>
