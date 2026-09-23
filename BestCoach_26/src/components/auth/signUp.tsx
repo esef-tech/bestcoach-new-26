@@ -20,8 +20,8 @@ import { doc, setDoc } from "firebase/firestore";
 function BestcoachLogo() {
   return (
     <Image
-      src="/bestcoach-logo.png"
-      alt="Bestcoach Music"
+      src="/bc-logo.jpeg"
+      alt="BestCoach"
       width={60}
       height={60}
       priority
