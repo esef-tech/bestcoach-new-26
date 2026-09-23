@@ -115,7 +115,7 @@ export function Hero() {
           </div>
           <div className="glass absolute -bottom-5 -left-3 hidden rounded-2xl px-4 py-3 sm:block">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">Since</p>
-            <p className="text-2xl font-bold text-primary">2003</p>
+            <p className="text-2xl font-bold text-primary">2023</p>
           </div>
         </motion.div>
       </div>
