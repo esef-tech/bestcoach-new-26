@@ -1,0 +1,45 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Enrollment {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  package   String
+  price     String
+  createdAt DateTime @default(now())
+}
+
+model SpecialRequest {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  service   String
+  createdAt DateTime @default(now())
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  hasAccount String  @default("no")
+  createdAt DateTime @default(now())
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  name      String   @default("Anonymous")
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
