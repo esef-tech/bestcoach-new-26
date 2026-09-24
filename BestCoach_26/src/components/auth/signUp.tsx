@@ -149,7 +149,9 @@ export default function SignUpPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username" className="text-base text-[#00394f]">
+                Username
+              </Label>
               <Input
                 id="username"
                 type="text"
@@ -163,7 +165,9 @@ export default function SignUpPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-base text-[#00394f]">
+                Email
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -176,7 +180,9 @@ export default function SignUpPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-base text-[#00394f]">
+                Password
+              </Label>
               <Input
                 id="password"
                 type="password"
@@ -206,7 +212,12 @@ export default function SignUpPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label
+                htmlFor="confirmPassword"
+                className="text-base text-[#00394f]"
+              >
+                Confirm Password
+              </Label>
               <Input
                 id="confirmPassword"
                 type="password"
