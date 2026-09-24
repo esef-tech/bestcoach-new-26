@@ -15,7 +15,12 @@ import {
   Users,
   Info,
   Phone,
+  LogOut,
+  UserRound,
+  Settings,
 } from "lucide-react";
+import { useSession, signOut } from "next-auth/react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -34,7 +39,7 @@ import {
   SheetClose,
 } from "@/components/ui/sheet";
 import { Logo } from "./logo";
-import { events, contactInfo } from "@/lib/data";
+import { events } from "@/lib/data";
 
 const NAV_LINKS = [
   { label: "Home", href: "#home", icon: Home },
@@ -46,8 +51,6 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  // Defer the mounted flag so we don't call setState synchronously inside
-  // the effect body (avoids cascading-render lint warnings).
   useEffect(() => {
     const id = requestAnimationFrame(() => setMounted(true));
     return () => cancelAnimationFrame(id);
@@ -58,6 +61,12 @@ export function Navbar() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const { data: session, status } = useSession();
+  const authenticated = status === "authenticated" && !!session?.user;
+  const initials = (session?.user?.username || session?.user?.email || "U")
+    .slice(0, 2)
+    .toUpperCase();
 
   const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
 
@@ -193,25 +202,84 @@ export function Navbar() {
               <Moon className="size-5" />
             )}
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            asChild
-            className="hidden h-9 sm:inline-flex"
-          >
-           <Link href="/login">
-              Sign In
-            </Link>
-          </Button>
-          <Button
-            size="sm"
-            asChild
-            className="hidden h-9 bg-accent text-accent-foreground hover:bg-accent/85 sm:inline-flex"
-          >
-              <Link href="/signup">
-              <Music className="size-4" /> Sign Up
-            </Link>
-          </Button>
+
+          {authenticated ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="hidden h-9 items-center gap-2 rounded-full pl-1 pr-3 ring-offset-background transition-colors hover:bg-accent/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:inline-flex"
+                  aria-label="Open account menu"
+                >
+                  <Avatar className="h-7 w-7">
+                    {session?.user?.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={session.user.image}
+                        alt={session.user.username || "user"}
+                        className="h-full w-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <AvatarFallback className="bg-[#00394f] text-xs font-bold text-white">
+                        {initials}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                  <span className="max-w-[120px] truncate text-sm font-medium text-foreground/90">
+                    {session?.user?.username || "Account"}
+                  </span>
+                  <ChevronDown className="size-3.5 text-muted-foreground" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="flex flex-col">
+                  <span className="text-sm font-semibold">
+                    {session?.user?.username || "User"}
+                  </span>
+                  <span className="truncate text-xs text-muted-foreground">
+                    {session?.user?.email}
+                  </span>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/profile" className="flex items-center gap-2">
+                    <UserRound className="size-4" /> My Profile
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/profile" className="flex items-center gap-2">
+                    <Settings className="size-4" /> Edit Profile
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                  className="flex items-center gap-2 text-red-600 focus:text-red-600"
+                >
+                  <LogOut className="size-4" /> Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                asChild
+                className="hidden h-9 sm:inline-flex"
+              >
+                <Link href="/signin">Sign In</Link>
+              </Button>
+              <Button
+                size="sm"
+                asChild
+                className="hidden h-9 bg-accent text-accent-foreground hover:bg-accent/85 sm:inline-flex"
+              >
+                <Link href="/signup">
+                  <Music className="size-4" /> Sign Up
+                </Link>
+              </Button>
+            </>
+          )}
 
           {/* Mobile hamburger */}
           <Sheet>
@@ -295,23 +363,61 @@ export function Navbar() {
                 </SheetClose>
               </nav>
               <div className="mt-auto flex flex-col gap-2 p-4">
-                <Button
-                  variant="outline"
-                  asChild
-                  className="h-11 w-full"
-                >
-                  <Link href={contactInfo.enrollForm} target="_blank" rel="noopener noreferrer">
-                    Sign In
-                  </Link>
-                </Button>
-                <Button
-                  asChild
-                  className="h-11 w-full bg-accent text-accent-foreground hover:bg-accent/85"
-                >
-                  <Link href={contactInfo.enrollForm} target="_blank" rel="noopener noreferrer">
-                    <Music className="size-4" /> Sign Up
-                  </Link>
-                </Button>
+                {authenticated ? (
+                  <>
+                    <div className="mb-2 flex items-center gap-3 rounded-lg bg-accent/20 p-3">
+                      <Avatar className="h-10 w-10">
+                        {session?.user?.image ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={session.user.image}
+                            alt={session.user.username || "user"}
+                            className="h-full w-full rounded-full object-cover"
+                          />
+                        ) : (
+                          <AvatarFallback className="bg-[#00394f] text-sm font-bold text-white">
+                            {initials}
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-semibold">
+                          {session?.user?.username || "User"}
+                        </div>
+                        <div className="truncate text-xs text-muted-foreground">
+                          {session?.user?.email}
+                        </div>
+                      </div>
+                    </div>
+                    <SheetClose asChild>
+                      <Button asChild variant="outline" className="h-11 w-full">
+                        <Link href="/profile">
+                          <UserRound className="size-4" /> My Profile
+                        </Link>
+                      </Button>
+                    </SheetClose>
+                    <Button
+                      onClick={() => signOut({ callbackUrl: "/" })}
+                      className="h-11 w-full bg-red-600 text-white hover:bg-red-700"
+                    >
+                      <LogOut className="size-4" /> Log out
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button asChild variant="outline" className="h-11 w-full">
+                      <Link href="/signin">Sign In</Link>
+                    </Button>
+                    <Button
+                      asChild
+                      className="h-11 w-full bg-accent text-accent-foreground hover:bg-accent/85"
+                    >
+                      <Link href="/signup">
+                        <Music className="size-4" /> Sign Up
+                      </Link>
+                    </Button>
+                  </>
+                )}
               </div>
             </SheetContent>
           </Sheet>

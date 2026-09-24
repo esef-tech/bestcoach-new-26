@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";            // ✅ added
+import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,10 +12,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-
-import { auth, db, firebaseConfigured } from "@/lib/firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
 
 /* ---------- Brand logo (local, optimized via next/image) ---------- */
 function BestcoachLogo() {
@@ -30,7 +27,6 @@ function BestcoachLogo() {
   );
 }
 
-/* ---------- Password strength config ---------- */
 type Strength = {
   level: "Weak" | "Medium" | "Strong" | "";
   barClass: string;
@@ -55,6 +51,7 @@ function calculateStrength(pass: string): Strength {
 export default function SignUpPage() {
   const router = useRouter();
   const [form, setForm] = useState({
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -71,31 +68,55 @@ export default function SignUpPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!firebaseConfigured) {
-      setError("Firebase authentication is not configured. Add the NEXT_PUBLIC_FIREBASE_* variables to .env.local.");
-      return;
-    }
+
     if (form.password !== form.confirmPassword) {
       setError("Passwords do not match");
       return;
     }
+    if (strength.level === "Weak") {
+      setError("Please choose a stronger password.");
+      return;
+    }
+
     setLoading(true);
     setError("");
+
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        form.email,
-        form.password
-      );
-      await setDoc(doc(db, "users", userCredential.user.uid), {
-        email: form.email,
-        createdAt: new Date(),
-        role: "user",
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: form.username,
+          email: form.email,
+          password: form.password,
+        }),
       });
+      const data = await res.json();
+
+      if (!res.ok || !data.ok) {
+        setError(data.message || "Sign-up failed. Please try again.");
+        return;
+      }
+
+      // Auto sign-in after signup
+      const signInRes = await signIn("credentials", {
+        email: form.email,
+        password: form.password,
+        redirect: false,
+      });
+
+      if (signInRes?.error) {
+        toast.success("Account created! Please sign in.");
+        router.push("/signin");
+        return;
+      }
+
       toast.success("Account created! Welcome to Bestcoach Music 🎉");
       router.push("/");
+      router.refresh();
     } catch (err) {
-      setError((err as Error).message);
+      console.error(err);
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -103,7 +124,6 @@ export default function SignUpPage() {
 
   return (
     <section className="relative flex min-h-screen items-center justify-center bg-gradient-to-b from-[#00394f] to-[#001f2e] px-4 py-24">
-      {/* subtle music-note background accent */}
       <div
         className="pointer-events-none absolute inset-0 opacity-10 text-white"
         aria-hidden="true"
@@ -129,6 +149,20 @@ export default function SignUpPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                type="text"
+                name="username"
+                value={form.username}
+                onChange={handleChange}
+                required
+                maxLength={40}
+                autoComplete="username"
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
@@ -152,7 +186,6 @@ export default function SignUpPage() {
                 required
                 autoComplete="new-password"
               />
-              {/* strength meter */}
               <div className="flex items-center gap-2 pt-1">
                 <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                   <div
@@ -206,24 +239,6 @@ export default function SignUpPage() {
             >
               Sign in
             </Link>
-          </p>
-
-          <p className="mt-4 text-center text-xs text-muted-foreground">
-            By continuing you agree to Bestcoach Music&apos;s{" "}
-            <Link
-              href="/terms"
-              className="font-medium text-amber-500 hover:text-amber-600"
-            >
-              Terms of use
-            </Link>{" "}
-            and{" "}
-            <Link
-              href="/privacy"
-              className="font-medium text-amber-500 hover:text-amber-600"
-            >
-              Privacy Policy
-            </Link>
-            .
           </p>
         </CardContent>
       </Card>

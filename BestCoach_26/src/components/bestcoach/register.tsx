@@ -151,7 +151,11 @@ export function Register() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="grid gap-4">
+              <form
+                onSubmit={handleSubmit}
+                className="grid gap-4"
+                data-grammarly="false"
+              >
                 <div className="grid gap-2">
                   <Label htmlFor="sr-name">Full Name</Label>
                   <Input
