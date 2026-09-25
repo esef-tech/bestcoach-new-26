@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTheme } from "@/components/theme-provider";
 import {
   Menu,
@@ -47,6 +48,7 @@ const NAV_LINKS = [
 ];
 
 export function Navbar() {
+  const router = useRouter();
   const { theme, setTheme } = useTheme();
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -69,6 +71,11 @@ export function Navbar() {
     .toUpperCase();
 
   const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
+
+  const handleSignOut = async () => {
+    await signOut({ redirect: false, callbackUrl: "/" });
+    router.replace("/");
+  };
 
   return (
     <header
@@ -252,7 +259,7 @@ export function Navbar() {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() => signOut({ callbackUrl: "/" })}
+                  onClick={handleSignOut}
                   className="flex items-center gap-2 text-red-600 focus:text-red-600"
                 >
                   <LogOut className="size-4" /> Log out
@@ -397,7 +404,7 @@ export function Navbar() {
                       </Button>
                     </SheetClose>
                     <Button
-                      onClick={() => signOut({ callbackUrl: "/" })}
+                      onClick={handleSignOut}
                       className="h-11 w-full bg-red-600 text-white hover:bg-red-700"
                     >
                       <LogOut className="size-4" /> Log out

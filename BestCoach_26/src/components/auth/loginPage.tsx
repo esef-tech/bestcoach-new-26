@@ -5,8 +5,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import {
+  GoogleAuthProvider,
+  OAuthProvider,
+  signInWithPopup,
+} from "firebase/auth";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { auth, firebaseConfigured } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,10 +33,33 @@ function BestcoachLogo() {
   );
 }
 
+function GoogleIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5">
+      <path fill="#4285F4" d="M21.35 12.23c0-.73-.07-1.44-.2-2.12H12v4.01h5.24a4.48 4.48 0 0 1-1.94 2.94v2.45h3.14c1.84-1.7 2.91-4.2 2.91-7.28Z" />
+      <path fill="#34A853" d="M12 21.6c2.63 0 4.84-.87 6.45-2.36l-3.14-2.45c-.87.58-1.98.92-3.31.92-2.54 0-4.69-1.72-5.46-4.03H3.3v2.53A9.74 9.74 0 0 0 12 21.6Z" />
+      <path fill="#FBBC05" d="M6.54 13.68a5.84 5.84 0 0 1 0-3.36V7.79H3.3a9.6 9.6 0 0 0 0 8.42l3.24-2.53Z" />
+      <path fill="#EA4335" d="M12 6.29c1.43 0 2.71.49 3.72 1.46l2.79-2.79C16.84 3.38 14.63 2.4 12 2.4a9.74 9.74 0 0 0-8.7 5.39l3.24 2.53C7.31 8.01 9.46 6.29 12 6.29Z" />
+    </svg>
+  );
+}
+
+function MicrosoftIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5">
+      <path fill="#F25022" d="M2 2h9.5v9.5H2z" />
+      <path fill="#7FBA00" d="M12.5 2H22v9.5h-9.5z" />
+      <path fill="#00A4EF" d="M2 12.5h9.5V22H2z" />
+      <path fill="#FFB900" d="M12.5 12.5H22V22h-9.5z" />
+    </svg>
+  );
+}
+
 export default function SignInPage() {
   const router = useRouter();
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState<"google" | "microsoft" | null>(null);
   const [error, setError] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -57,6 +86,45 @@ export default function SignInPage() {
     toast.success("Signed in successfully!");
     router.push("/");
     router.refresh();
+  };
+
+  const handleSocialSignIn = async (provider: "google" | "microsoft") => {
+    if (!firebaseConfigured || !auth) {
+      setError("Firebase authentication is not configured.");
+      return;
+    }
+
+    setSocialLoading(provider);
+    setError("");
+    try {
+      const authProvider = provider === "google"
+        ? new GoogleAuthProvider()
+        : new OAuthProvider("microsoft.com");
+      const result = await signInWithPopup(auth, authProvider);
+      const idToken = await result.user.getIdToken();
+      const response = await signIn("firebase", { idToken, redirect: false });
+
+      if (response?.error) {
+        throw new Error("Could not create the Bestcoach session.");
+      }
+      toast.success("Signed in successfully!");
+      router.push("/");
+      router.refresh();
+    } catch (err) {
+      console.error(err);
+      const errorCode = err && typeof err === "object" && "code" in err
+        ? String(err.code)
+        : "";
+      const message = errorCode === "auth/unauthorized-domain"
+        ? `This site (${window.location.hostname}) is not authorized for Firebase sign-in. Add it in Firebase Console > Authentication > Settings > Authorized domains.`
+        : "Social sign-in failed. Please try again.";
+      setError(message);
+      toast.error(errorCode === "auth/unauthorized-domain"
+        ? "Add this site to Firebase Authorized domains."
+        : "Social sign-in failed.");
+    } finally {
+      setSocialLoading(null);
+    }
   };
 
   return (
@@ -125,6 +193,35 @@ export default function SignInPage() {
               )}
             </Button>
           </form>
+
+          <div className="my-6 flex items-center gap-3 text-xs text-muted-foreground">
+            <div className="h-px flex-1 bg-border" />
+            <span>Or continue with</span>
+            <div className="h-px flex-1 bg-border" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleSocialSignIn("google")}
+              disabled={loading || socialLoading !== null}
+              className="h-11 gap-2 rounded-xl border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+            >
+              {socialLoading === "google" ? <Loader2 className="h-4 w-4 animate-spin" /> : <GoogleIcon />}
+              Google
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleSocialSignIn("microsoft")}
+              disabled={loading || socialLoading !== null}
+              className="h-11 gap-2 rounded-xl border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+            >
+              {socialLoading === "microsoft" ? <Loader2 className="h-4 w-4 animate-spin" /> : <MicrosoftIcon />}
+              Microsoft
+            </Button>
+          </div>
 
           <div className="mb-6 mt-4 text-center">
             <Link

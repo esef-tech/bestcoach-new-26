@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import { Loader2, Upload, X } from "lucide-react";
+import { ArrowLeft, Loader2, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -80,7 +81,7 @@ export default function ProfilePage() {
         const res = await fetch("/api/profile");
         const data = await readProfileResponse(res);
         if (!active) return;
-        if (data.ok) {
+        if (data.ok && data.user) {
           setUsername(data.user.username ?? "");
           setImage(data.user.image ?? null);
         }
@@ -220,7 +221,9 @@ export default function ProfilePage() {
 
           <form onSubmit={handleSave} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username" className="text-lg font-bold text-[#00394f]">
+                Username
+              </Label>
               <Input
                 id="username"
                 type="text"
@@ -228,16 +231,17 @@ export default function ProfilePage() {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 maxLength={40}
+                className="text-lg font-bold text-[#00394f]"
               />
             </div>
 
             <div className="space-y-2">
-              <Label>Email</Label>
+              <Label className="text-lg font-bold text-[#00394f]">Email</Label>
               <Input
                 type="email"
                 value={session.user?.email ?? ""}
                 disabled
-                className="bg-muted/50"
+                className="bg-muted/50 text-lg font-bold text-[#00394f] opacity-100"
               />
               <p className="text-xs text-muted-foreground">
                 Email cannot be changed.
@@ -256,6 +260,13 @@ export default function ProfilePage() {
               )}
             </Button>
           </form>
+
+          <Link
+            href="/"
+            className="mt-6 flex items-center justify-center gap-2 text-sm font-bold text-amber-600 hover:text-amber-700"
+          >
+            <ArrowLeft className="h-4 w-4" /> Back to home
+          </Link>
         </CardContent>
       </Card>
     </section>

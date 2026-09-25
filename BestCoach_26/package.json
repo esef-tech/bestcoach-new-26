@@ -3,7 +3,7 @@
   "version": "0.2.1",
   "private": true,
   "scripts": {
-    "dev": "fuser -k 3000/tcp 2>/dev/null || true; rm -f .next/dev/lock; next dev -p 3000 2>&1 | tee dev.log",
+    "dev": "fuser -k 3000/tcp 2>/dev/null || true; rm -f .next/dev/lock; NODE_OPTIONS=--max-http-header-size=524288 next dev -H localhost -p 3000 2>&1 | tee dev.log",
     "build": "prisma generate && next build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/",
     "start": "NODE_ENV=production bun .next/standalone/server.js 2>&1 | tee server.log",
     "lint": "eslint .",
