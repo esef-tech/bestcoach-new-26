@@ -52,6 +52,9 @@ export function Navbar() {
   const { theme, setTheme } = useTheme();
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const { data: session, status } = useSession();
+  const [profileUsername, setProfileUsername] = useState("");
+  const [profileImage, setProfileImage] = useState<string | null>(null);
 
   useEffect(() => {
     const id = requestAnimationFrame(() => setMounted(true));
@@ -64,11 +67,48 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const { data: session, status } = useSession();
   const authenticated = status === "authenticated" && !!session?.user;
-  const initials = (session?.user?.username || session?.user?.email || "U")
+  const initials = (profileUsername || session?.user?.email || "U")
     .slice(0, 2)
     .toUpperCase();
+
+  useEffect(() => {
+    if (!authenticated) return;
+
+    let active = true;
+    const loadProfile = async () => {
+      try {
+        const response = await fetch("/api/profile", { cache: "no-store" });
+        if (!response.ok) return;
+        const data = (await response.json()) as {
+          user?: { username?: string; image?: string | null };
+        };
+        if (!active || !data.user) return;
+        setProfileUsername(data.user.username ?? "");
+        setProfileImage(data.user.image ?? null);
+      } catch {
+        if (active) {
+          setProfileUsername(session?.user?.username ?? "");
+          setProfileImage(session?.user?.image ?? null);
+        }
+      }
+    };
+
+    const handleProfileUpdated = (event: Event) => {
+      const detail = (event as CustomEvent<{ username?: string; image?: string | null }>).detail;
+      setProfileUsername(detail.username ?? "");
+      setProfileImage(detail.image ?? null);
+    };
+
+    void loadProfile();
+    window.addEventListener("focus", loadProfile);
+    window.addEventListener("profile-updated", handleProfileUpdated);
+    return () => {
+      active = false;
+      window.removeEventListener("focus", loadProfile);
+      window.removeEventListener("profile-updated", handleProfileUpdated);
+    };
+  }, [authenticated, session?.user?.image, session?.user?.username]);
 
   const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
 
@@ -218,11 +258,11 @@ export function Navbar() {
                   aria-label="Open account menu"
                 >
                   <Avatar className="h-7 w-7">
-                    {session?.user?.image ? (
+                    {profileImage ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={session.user.image}
-                        alt={session.user.username || "user"}
+                        src={profileImage}
+                        alt={profileUsername || "user"}
                         className="h-full w-full rounded-full object-cover"
                       />
                     ) : (
@@ -232,7 +272,7 @@ export function Navbar() {
                     )}
                   </Avatar>
                   <span className="max-w-[120px] truncate text-sm font-medium text-foreground/90">
-                    {session?.user?.username || "Account"}
+                    {profileUsername || "Account"}
                   </span>
                   <ChevronDown className="size-3.5 text-muted-foreground" />
                 </button>
@@ -240,7 +280,7 @@ export function Navbar() {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel className="flex flex-col">
                   <span className="text-sm font-semibold">
-                    {session?.user?.username || "User"}
+                    {profileUsername || "User"}
                   </span>
                   <span className="truncate text-xs text-muted-foreground">
                     {session?.user?.email}
@@ -374,11 +414,11 @@ export function Navbar() {
                   <>
                     <div className="mb-2 flex items-center gap-3 rounded-lg bg-accent/20 p-3">
                       <Avatar className="h-10 w-10">
-                        {session?.user?.image ? (
+                        {profileImage ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
-                            src={session.user.image}
-                            alt={session.user.username || "user"}
+                            src={profileImage}
+                            alt={profileUsername || "user"}
                             className="h-full w-full rounded-full object-cover"
                           />
                         ) : (
@@ -389,7 +429,7 @@ export function Navbar() {
                       </Avatar>
                       <div className="min-w-0">
                         <div className="truncate text-sm font-semibold">
-                          {session?.user?.username || "User"}
+                          {profileUsername || "User"}
                         </div>
                         <div className="truncate text-xs text-muted-foreground">
                           {session?.user?.email}

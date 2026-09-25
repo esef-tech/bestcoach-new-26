@@ -133,6 +133,11 @@ export default function ProfilePage() {
         toast.error(data.message || "Could not save profile.");
         return;
       }
+      window.dispatchEvent(
+        new CustomEvent("profile-updated", {
+          detail: { username: data.user?.username ?? username, image: data.user?.image ?? null },
+        })
+      );
       // Refresh the session so the navbar avatar/username updates live
       await update({});
       toast.success("Profile updated! 🎉");

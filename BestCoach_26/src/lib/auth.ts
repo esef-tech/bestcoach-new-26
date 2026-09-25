@@ -3,6 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { randomUUID } from "crypto";
 import { db } from "@/lib/db";
+import { firebaseConfig } from "@/lib/firebase-config";
 
 type FirebaseAccount = {
   localId: string;
@@ -12,7 +13,7 @@ type FirebaseAccount = {
 };
 
 async function verifyFirebaseToken(idToken: string): Promise<FirebaseAccount | null> {
-  const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+  const apiKey = firebaseConfig.apiKey;
   if (!apiKey) return null;
 
   const response = await fetch(
