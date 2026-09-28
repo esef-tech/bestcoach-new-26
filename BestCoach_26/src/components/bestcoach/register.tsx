@@ -23,6 +23,8 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { refreshUserNotifications } from "@/lib/notification-events";
+import { RequireAuthentication, useAuthenticationPrompt } from "@/components/bestcoach/require-authentication";
 import { services, contactInfo } from "@/lib/data";
 
 const CHECKLIST = [
@@ -37,9 +39,11 @@ export function Register() {
   const [service, setService] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { requireAuthentication, prompt } = useAuthenticationPrompt();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!requireAuthentication()) return;
     if (!name.trim() || !email.trim() || !service) {
       toast({
         title: "Missing details",
@@ -57,6 +61,7 @@ export function Register() {
       });
       const data = await res.json();
       if (data?.success) {
+        refreshUserNotifications();
         toast({
           title: "Special request sent! 🎵",
           description: data.message ?? "We'll reach out shortly.",
@@ -122,15 +127,17 @@ export function Register() {
               </li>
             ))}
           </ul>
-          <Button
-            asChild
-            size="lg"
-            className="mt-2 h-12 w-fit bg-accent text-accent-foreground hover:bg-accent/85"
-          >
-            <Link href={contactInfo.enrollForm} target="_blank" rel="noopener noreferrer">
-              <GraduationCap className="size-5" /> Enroll Now
-            </Link>
-          </Button>
+          <RequireAuthentication>
+            <Button
+              asChild
+              size="lg"
+              className="mt-2 h-12 w-fit bg-accent text-accent-foreground hover:bg-accent/85"
+            >
+              <Link href={contactInfo.enrollForm} target="_blank" rel="noopener noreferrer">
+                <GraduationCap className="size-5" /> Enroll Now
+              </Link>
+            </Button>
+          </RequireAuthentication>
         </motion.div>
 
         {/* Right column */}
@@ -214,6 +221,7 @@ export function Register() {
           </Card>
         </motion.div>
       </div>
+      {prompt}
     </section>
   );
 }

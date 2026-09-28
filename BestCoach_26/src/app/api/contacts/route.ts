@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { createUserNotification } from "@/lib/user-notifications";
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,8 +27,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    await db.contactMessage.create({
+    const contactMessage = await db.contactMessage.create({
       data: { name, email, subject, message, hasAccount },
+    });
+
+    const session = await getServerSession(authOptions);
+    await createUserNotification({
+      userId: session?.user?.id,
+      eventKey: `contact:${contactMessage.id}`,
+      type: "contact",
+      title: "Message sent",
+      message: `Your message “${subject}” was sent successfully.`,
+      href: "/profile#notifications",
     });
 
     return NextResponse.json({

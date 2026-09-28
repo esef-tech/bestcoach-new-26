@@ -1,0 +1,162 @@
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { createUserNotification } from "@/lib/user-notifications";
+
+type LineItem = {
+  id: string;
+  name: string;
+  priceGhs: number;
+  priceUsd: number;
+  quantity: number;
+};
+
+function makeReference() {
+  return `bc_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { ok: false, message: "Sign in before placing an order." },
+        { status: 401 }
+      );
+    }
+
+    const body = await req.json();
+    const items: LineItem[] = Array.isArray(body.items) ? body.items : [];
+    const customerName = String(body.customerName ?? "").trim();
+    const customerEmail = String(body.customerEmail ?? "")
+      .trim()
+      .toLowerCase();
+    const customerPhone = String(body.customerPhone ?? "").trim();
+    const customerAddress = String(body.customerAddress ?? "").trim();
+    const currency: "GHS" | "USD" =
+      body.currency === "USD" ? "USD" : "GHS";
+
+    if (!items.length || !customerName || !customerEmail || !customerPhone) {
+      return NextResponse.json(
+        { ok: false, message: "Cart is empty or required fields missing." },
+        { status: 400 }
+      );
+    }
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail);
+    if (!emailOk) {
+      return NextResponse.json(
+        { ok: false, message: "Please enter a valid email." },
+        { status: 400 }
+      );
+    }
+
+    const totalGhs = items.reduce(
+      (s, i) => s + i.priceGhs * i.quantity,
+      0
+    );
+    const totalUsd = items.reduce(
+      (s, i) => s + i.priceUsd * i.quantity,
+      0
+    );
+    const reference = makeReference();
+
+    const order = await db.order.create({
+      data: {
+        userId: session.user.id,
+        reference,
+        customerName,
+        customerEmail,
+        customerPhone,
+        customerAddress,
+        currency,
+        totalGhs,
+        totalUsd,
+        items: JSON.stringify(items),
+        status: "pending",
+      },
+    });
+
+    // ---- Paystack (real) if a secret key is configured ----
+    const secret = process.env.PAYSTACK_SECRET_KEY;
+    if (secret) {
+      const amount =
+        currency === "GHS"
+          ? Math.round(totalGhs * 100) // pesewas
+          : Math.round(totalUsd * 100); // cents
+      const origin =
+        process.env.NEXTAUTH_URL ||
+        `${req.nextUrl.protocol}//${req.headers.get("host")}`;
+      const callbackUrl = `${origin}/shop?paystack=1&reference=${reference}`;
+
+      const res = await fetch(
+        "https://api.paystack.co/transaction/initialize",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${secret}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: customerEmail,
+            amount,
+            currency,
+            reference,
+            callback_url: callbackUrl,
+            metadata: {
+              orderId: order.id,
+              custom_fields: [
+                { display_name: "Name", variable_name: "name", value: customerName },
+                { display_name: "Phone", variable_name: "phone", value: customerPhone },
+                { display_name: "Address", variable_name: "address", value: customerAddress },
+              ],
+            },
+          }),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok || !data?.data?.authorization_url) {
+        console.error("[paystack init] failed:", data);
+        return NextResponse.json(
+          {
+            ok: false,
+            message: data?.message || "Could not start payment. Try again.",
+          },
+          { status: 502 }
+        );
+      }
+      return NextResponse.json({
+        ok: true,
+        mode: "paystack",
+        authorizationUrl: data.data.authorization_url,
+        reference,
+      });
+    }
+
+    // ---- Test mode (no Paystack key) — mark as paid for local/dev testing ----
+    await db.order.update({
+      where: { id: order.id },
+      data: { status: "paid", paidAt: new Date() },
+    });
+    await createUserNotification({
+      userId: session.user.id,
+      eventKey: `order-paid:${order.id}`,
+      type: "purchase",
+      title: "Purchase successful",
+      message: `Your order ${reference} was paid successfully.`,
+      href: "/profile#orders-heading",
+    });
+    return NextResponse.json({
+      ok: true,
+      mode: "test",
+      reference,
+      message: "Test payment succeeded (no PAYSTACK_SECRET_KEY configured).",
+    });
+  } catch (err) {
+    console.error("[checkout] error:", err);
+    return NextResponse.json(
+      { ok: false, message: "Something went wrong during checkout." },
+      { status: 500 }
+    );
+  }
+}

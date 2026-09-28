@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Award, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { RequireAuthentication } from "@/components/bestcoach/require-authentication";
 
 export function Loyalty() {
   return (
@@ -39,24 +40,28 @@ export function Loyalty() {
             back to dedicated musicians.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Button
-              asChild
-              size="lg"
-              className="h-12 bg-accent text-accent-foreground hover:bg-accent/85"
-            >
-              <Link href="#contact">
-                Join the Loyalty Project
-                <ArrowRight className="size-4" />
-              </Link>
-            </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="h-12 border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-primary-foreground/10"
-            >
-              <Link href="#events">See our events</Link>
-            </Button>
+              <RequireAuthentication>
+                <Button
+                  asChild
+                  size="lg"
+                  className="h-12 bg-accent text-accent-foreground hover:bg-accent/85"
+                >
+                  <Link href="#contact">
+                    Join the Loyalty Project
+                    <ArrowRight className="size-4" />
+                  </Link>
+                </Button>
+              </RequireAuthentication>
+              <RequireAuthentication>
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="h-12 border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-primary-foreground/10"
+                >
+                  <Link href="#events">See our events</Link>
+                </Button>
+              </RequireAuthentication>
           </div>
         </div>
       </motion.div>

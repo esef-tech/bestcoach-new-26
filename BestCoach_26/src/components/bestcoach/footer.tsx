@@ -16,6 +16,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Logo } from "./logo";
 import { useToast } from "@/hooks/use-toast";
+import { refreshUserNotifications } from "@/lib/notification-events";
+import { useAuthenticationPrompt } from "@/components/bestcoach/require-authentication";
 import { contactInfo } from "@/lib/data";
 
 function TikTokIcon({ className }: { className?: string }) {
@@ -57,9 +59,11 @@ export function Footer() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { requireAuthentication, prompt } = useAuthenticationPrompt();
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!requireAuthentication()) return;
     if (!name.trim() || !email.trim()) {
       toast({
         title: "Missing details",
@@ -77,6 +81,7 @@ export function Footer() {
       });
       const data = await res.json();
       if (data?.success) {
+        refreshUserNotifications();
         toast({
           title: "Subscribed! 🎉",
           description: data.message ?? "You're on the list.",
@@ -243,6 +248,7 @@ export function Footer() {
           © {year} Bestcoach Music. All Rights Reserved.
         </div>
       </div>
+      {prompt}
     </footer>
   );
 }

@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { createUserNotification } from "@/lib/user-notifications";
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,8 +25,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    await db.specialRequest.create({
+    const request = await db.specialRequest.create({
       data: { name, email, service },
+    });
+
+    const session = await getServerSession(authOptions);
+    await createUserNotification({
+      userId: session?.user?.id,
+      eventKey: `special-request:${request.id}`,
+      type: "special-request",
+      title: "Special request received",
+      message: `Your request about ${service} was sent successfully.`,
+      href: "/profile#notifications",
     });
 
     return NextResponse.json({

@@ -18,6 +18,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { refreshUserNotifications } from "@/lib/notification-events";
+import { useAuthenticationPrompt } from "@/components/bestcoach/require-authentication";
 import { packages } from "@/lib/data";
 import type { Package } from "@/lib/data";
 
@@ -48,9 +50,11 @@ function EnrollDialog({ pkg }: { pkg: Package }) {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { requireAuthentication, prompt } = useAuthenticationPrompt();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!requireAuthentication()) return;
     if (!name.trim() || !email.trim()) {
       toast({
         title: "Missing details",
@@ -73,6 +77,7 @@ function EnrollDialog({ pkg }: { pkg: Package }) {
       });
       const data = await res.json();
       if (data?.success) {
+        refreshUserNotifications();
         toast({
           title: "Enrollment sent! 🎉",
           description: data.message ?? "We'll be in touch shortly.",
@@ -99,9 +104,13 @@ function EnrollDialog({ pkg }: { pkg: Package }) {
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
+          onClick={(event) => {
+            if (!requireAuthentication()) event.preventDefault();
+          }}
           className="w-full h-11 bg-accent text-accent-foreground hover:bg-accent/85"
           aria-label={`Enroll in ${pkg.title}`}
         >
@@ -178,6 +187,8 @@ function EnrollDialog({ pkg }: { pkg: Package }) {
         </form>
       </DialogContent>
     </Dialog>
+    {prompt}
+    </>
   );
 }
 

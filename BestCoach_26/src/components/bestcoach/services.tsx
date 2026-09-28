@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { RequireAuthentication } from "@/components/bestcoach/require-authentication";
 import { motion } from "framer-motion";
 import { Sparkles, ArrowRight, Music2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -95,13 +96,15 @@ export function Services() {
         <div className="mt-10 text-center">
           <p className="text-muted-foreground">
             Need something specific?{" "}
-            <Link
-              href="#contact"
-              className="inline-flex items-center gap-1 font-semibold text-primary underline-offset-4 hover:underline"
-            >
-              Make a special request
-              <ArrowRight className="size-4" />
-            </Link>
+              <RequireAuthentication>
+                <Link
+                  href="#contact"
+                  className="inline-flex items-center gap-1 font-semibold text-primary underline-offset-4 hover:underline"
+                >
+                  Make a special request
+                  <ArrowRight className="size-4" />
+                </Link>
+              </RequireAuthentication>
           </p>
         </div>
       </div>

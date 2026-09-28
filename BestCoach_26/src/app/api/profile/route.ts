@@ -15,14 +15,105 @@ export async function GET() {
     if (!session) {
       return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
     }
-    const user = await db.user.findUnique({
-      where: { id: session.user.id },
-      select: { id: true, email: true, username: true, image: true },
-    });
+    const userId = session.user.id;
+    const [user, orders, orderCount, paidOrders, pendingOrders, pageViews, topPages, latestActivity] =
+      await Promise.all([
+        db.user.findUnique({
+          where: { id: userId },
+          select: { id: true, email: true, username: true, image: true, createdAt: true },
+        }),
+        db.order.findMany({
+          where: { userId },
+          orderBy: { createdAt: "desc" },
+          take: 20,
+          select: {
+            id: true,
+            reference: true,
+            currency: true,
+            totalGhs: true,
+            totalUsd: true,
+            items: true,
+            status: true,
+            paidAt: true,
+            createdAt: true,
+          },
+        }),
+        db.order.count({ where: { userId } }),
+        db.order.aggregate({
+          where: { userId, status: "paid" },
+          _count: { _all: true },
+          _sum: { totalGhs: true, totalUsd: true },
+        }),
+        db.order.count({ where: { userId, status: "pending" } }),
+        db.userActivity.count({ where: { userId } }),
+        db.userActivity.groupBy({
+          by: ["path"],
+          where: { userId },
+          _count: { _all: true },
+          orderBy: { _count: { path: "desc" } },
+        }),
+        db.userActivity.findFirst({
+          where: { userId },
+          orderBy: { createdAt: "desc" },
+          select: { createdAt: true },
+        }),
+      ]);
     if (!user) {
       return NextResponse.json({ ok: false, message: "Not found" }, { status: 404 });
     }
-    return NextResponse.json({ ok: true, user });
+
+    const orderSummaries = orders.map((order) => {
+      let items: { name: string; quantity: number }[] = [];
+      try {
+        const parsed: unknown = JSON.parse(order.items);
+        if (Array.isArray(parsed)) {
+          items = parsed.flatMap((item) => {
+            if (!item || typeof item !== "object") return [];
+            const record = item as { name?: unknown; quantity?: unknown };
+            if (typeof record.name !== "string") return [];
+            return [{
+              name: record.name,
+              quantity: typeof record.quantity === "number" ? record.quantity : 1,
+            }];
+          });
+        }
+      } catch {
+        // Keep the order visible even if a legacy item payload is malformed.
+      }
+
+      return {
+        id: order.id,
+        reference: order.reference,
+        currency: order.currency,
+        totalGhs: order.totalGhs,
+        totalUsd: order.totalUsd,
+        status: order.status,
+        paidAt: order.paidAt,
+        createdAt: order.createdAt,
+        itemCount: items.reduce((total, item) => total + item.quantity, 0),
+        items,
+      };
+    });
+
+    return NextResponse.json({
+      ok: true,
+      user,
+      orders: orderSummaries,
+      metrics: {
+        ordersPlaced: orderCount,
+        paidOrders: paidOrders._count._all,
+        pendingOrders,
+        totalSpentGhs: paidOrders._sum.totalGhs ?? 0,
+        totalSpentUsd: paidOrders._sum.totalUsd ?? 0,
+        pageViews,
+        uniquePages: topPages.length,
+        lastActiveAt: latestActivity?.createdAt ?? null,
+      },
+      topPages: topPages.slice(0, 5).map((page) => ({
+        path: page.path,
+        views: page._count._all,
+      })),
+    });
   } catch (error) {
     console.error("[profile] GET error:", error);
     return NextResponse.json(

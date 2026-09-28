@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { CalendarDays, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { RequireAuthentication } from "@/components/bestcoach/require-authentication";
 import { events, contactInfo } from "@/lib/data";
 
 export function Events() {
@@ -84,14 +85,18 @@ export function Events() {
                   </h3>
                   <p className="text-muted-foreground sm:text-lg">{ev.desc}</p>
                   <div className="mt-2 flex flex-wrap gap-3">
-                    <Button asChild className="h-11 bg-accent text-accent-foreground hover:bg-accent/85">
-                      <Link href={contactInfo.linktree} target="_blank" rel="noopener noreferrer">
-                        Register <ArrowRight className="size-4" />
-                      </Link>
-                    </Button>
-                    <Button asChild variant="outline" className="h-11">
-                      <Link href="#contact">Learn More</Link>
-                    </Button>
+                      <RequireAuthentication>
+                        <Button asChild className="h-11 bg-accent text-accent-foreground hover:bg-accent/85">
+                          <Link href={contactInfo.linktree} target="_blank" rel="noopener noreferrer">
+                            Register <ArrowRight className="size-4" />
+                          </Link>
+                        </Button>
+                      </RequireAuthentication>
+                      <RequireAuthentication>
+                        <Button asChild variant="outline" className="h-11">
+                          <Link href="#contact">Learn More</Link>
+                        </Button>
+                      </RequireAuthentication>
                   </div>
                 </div>
               </motion.article>

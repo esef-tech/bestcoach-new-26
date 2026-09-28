@@ -45,6 +45,8 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { refreshUserNotifications } from "@/lib/notification-events";
+import { useAuthenticationPrompt } from "@/components/bestcoach/require-authentication";
 import { faqs, contactInfo } from "@/lib/data";
 
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -112,6 +114,7 @@ export function Contact() {
   const [hasAccount, setHasAccount] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { requireAuthentication, prompt } = useAuthenticationPrompt();
 
   const filteredFaqs = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -125,6 +128,7 @@ export function Contact() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!requireAuthentication()) return;
     if (!name.trim() || !email.trim() || !subject.trim() || !message.trim()) {
       toast({
         title: "Missing details",
@@ -148,6 +152,7 @@ export function Contact() {
       });
       const data = await res.json();
       if (data?.success) {
+        refreshUserNotifications();
         toast({
           title: "Message sent! 🎉",
           description: data.message ?? "We'll respond as soon as possible.",
@@ -444,6 +449,7 @@ export function Contact() {
           </a>
         </div>
       </div>
+      {prompt}
     </section>
   );
 }

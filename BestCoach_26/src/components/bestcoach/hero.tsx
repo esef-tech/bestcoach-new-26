@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Sparkles, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { RequireAuthentication } from "@/components/bestcoach/require-authentication";
 import { packages, contactInfo } from "@/lib/data";
 
 function SafeImage({
@@ -66,19 +67,23 @@ export function Hero() {
             music flow! 🎸🎤
           </p>
           <div className="flex flex-wrap gap-3">
-            <Button
-              size="lg"
-              asChild
-              className="h-12 bg-accent text-accent-foreground hover:bg-accent/85"
-            >
-              <Link href={contactInfo.linktree} target="_blank" rel="noopener noreferrer">
-                Follow Us For More
-                <ExternalLink className="size-4" />
-              </Link>
-            </Button>
-            <Button size="lg" variant="outline" asChild className="h-12">
-              <Link href="#programs">View Programs</Link>
-            </Button>
+                  <RequireAuthentication>
+                    <Button
+                      size="lg"
+                      asChild
+                      className="h-12 bg-accent text-accent-foreground hover:bg-accent/85"
+                    >
+                      <Link href={contactInfo.linktree} target="_blank" rel="noopener noreferrer">
+                        Follow Us For More
+                        <ExternalLink className="size-4" />
+                      </Link>
+                    </Button>
+                  </RequireAuthentication>
+                  <RequireAuthentication>
+                    <Button size="lg" variant="outline" asChild className="h-12">
+                      <Link href="#programs">View Programs</Link>
+                    </Button>
+                  </RequireAuthentication>
           </div>
         </motion.div>
 

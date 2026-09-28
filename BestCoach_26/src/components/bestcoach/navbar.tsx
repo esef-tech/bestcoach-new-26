@@ -19,6 +19,7 @@ import {
   LogOut,
   UserRound,
   Settings,
+  ShoppingBag,
 } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -40,11 +41,15 @@ import {
   SheetClose,
 } from "@/components/ui/sheet";
 import { Logo } from "./logo";
+import {CartDrawer } from "./cart-drawer";
+import { NotificationBell } from "./notification-bell";
 import { events } from "@/lib/data";
+import { label } from "framer-motion/client";
 
 const NAV_LINKS = [
-  { label: "Home", href: "#home", icon: Home },
-  { label: "Community", href: "#events", icon: Users },
+  { label: "Home", href: "/#home", icon: Home },
+  { label: "Community", href: "/#events", icon: Users },
+  {label: "Shop", href: "/shop", icon: ShoppingBag},
 ];
 
 export function Navbar() {
@@ -152,7 +157,7 @@ export function Navbar() {
         aria-label="Main navigation"
       >
         <Link
-          href="#home"
+          href="/#home"
           className="rounded-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
           aria-label="Bestcoach Music home"
         >
@@ -188,7 +193,7 @@ export function Navbar() {
                 <DropdownMenuSeparator />
                 {events.map((ev) => (
                   <DropdownMenuItem asChild key={ev.id}>
-                    <Link href="#events" className="flex-col items-start">
+                    <Link href="/#events" className="flex-col items-start">
                       <span className="font-medium">{ev.title}</span>
                       <span className="text-xs text-muted-foreground">
                         Code: {ev.short}
@@ -211,17 +216,17 @@ export function Navbar() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
-                  <Link href="#about" className="flex items-center gap-2">
+                  <Link href="/#about" className="flex items-center gap-2">
                     <Info className="size-4" /> About Us
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="#about" className="flex items-center gap-2">
+                  <Link href="/#about" className="flex items-center gap-2">
                     <Users className="size-4" /> Team
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="#contact" className="flex items-center gap-2">
+                  <Link href="/#contact" className="flex items-center gap-2">
                     <Phone className="size-4" /> Contact
                   </Link>
                 </DropdownMenuItem>
@@ -249,6 +254,8 @@ export function Navbar() {
               <Moon className="size-5" />
             )}
           </Button>
+          {authenticated && <NotificationBell />}
+          <CartDrawer />
 
           {authenticated ? (
             <DropdownMenu>
@@ -349,7 +356,7 @@ export function Navbar() {
               <nav className="flex flex-col gap-1 px-4" aria-label="Mobile">
                 <SheetClose asChild>
                   <Link
-                    href="#home"
+                    href="/#home"
                     className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent/30"
                   >
                     <Home className="size-4" /> Home
@@ -357,10 +364,19 @@ export function Navbar() {
                 </SheetClose>
                 <SheetClose asChild>
                   <Link
-                    href="#events"
+                    href="/#events"
                     className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent/30"
                   >
                     <Users className="size-4" /> Community
+                  </Link>
+                </SheetClose>
+
+                 <SheetClose asChild>
+                  <Link
+                    href="/shop"
+                    className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent/30"
+                  >
+                    <ShoppingBag className="size-4" /> Shop
                   </Link>
                 </SheetClose>
 
@@ -370,7 +386,7 @@ export function Navbar() {
                 {events.map((ev) => (
                   <SheetClose asChild key={ev.id}>
                     <Link
-                      href="#events"
+                      href="/#events"
                       className="flex flex-col rounded-md px-3 py-2 text-sm hover:bg-accent/30"
                     >
                       <span className="font-medium">{ev.title}</span>
@@ -386,7 +402,7 @@ export function Navbar() {
                 </p>
                 <SheetClose asChild>
                   <Link
-                    href="#about"
+                    href="/#about"
                     className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm hover:bg-accent/30"
                   >
                     <Info className="size-4" /> About Us
@@ -394,7 +410,7 @@ export function Navbar() {
                 </SheetClose>
                 <SheetClose asChild>
                   <Link
-                    href="#about"
+                    href="/#about"
                     className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm hover:bg-accent/30"
                   >
                     <Users className="size-4" /> Team
@@ -402,7 +418,7 @@ export function Navbar() {
                 </SheetClose>
                 <SheetClose asChild>
                   <Link
-                    href="#contact"
+                    href="/#contact"
                     className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm hover:bg-accent/30"
                   >
                     <Phone className="size-4" /> Contact

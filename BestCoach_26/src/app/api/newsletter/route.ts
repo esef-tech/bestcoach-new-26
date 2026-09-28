@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
+import { createUserNotification } from "@/lib/user-notifications";
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,26 +25,50 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    let subscriptionId: string | null = null;
+    let alreadySubscribed = false;
     try {
-      await db.newsletterSubscriber.create({
+      const subscription = await db.newsletterSubscriber.create({
         data: { name, email },
       });
+      subscriptionId = subscription.id;
     } catch (err) {
       if (err instanceof Prisma.PrismaClientKnownRequestError) {
         // P2002 = unique constraint violation
         if (err.code === "P2002") {
-          return NextResponse.json({
-            success: true,
-            message: "You're already subscribed! 🎶",
+          alreadySubscribed = true;
+          const existing = await db.newsletterSubscriber.findUnique({
+            where: { email },
+            select: { id: true },
           });
+          subscriptionId = existing?.id ?? null;
+        } else {
+          throw err;
         }
+      } else {
+        throw err;
       }
-      throw err;
+    }
+
+    if (subscriptionId) {
+      const session = await getServerSession(authOptions);
+      await createUserNotification({
+        userId: session?.user?.id,
+        eventKey: `newsletter:${subscriptionId}`,
+        type: "newsletter",
+        title: "Newsletter subscription confirmed",
+        message: alreadySubscribed
+          ? "Your Bestcoach Music newsletter subscription is active."
+          : "You subscribed to Bestcoach Music updates successfully.",
+        href: "/profile#notifications",
+      });
     }
 
     return NextResponse.json({
       success: true,
-      message: "Subscribed successfully! 🎉",
+      message: alreadySubscribed
+        ? "You're already subscribed! 🎶"
+        : "Subscribed successfully! 🎉",
     });
   } catch (err) {
     console.error("[newsletter] error:", err);

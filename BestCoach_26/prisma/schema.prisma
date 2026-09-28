@@ -53,6 +53,8 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   resetTokens  PasswordResetToken[]
+  activities   UserActivity[]
+  notifications Notification[]
 }
 
 model PasswordResetToken {
@@ -65,4 +67,61 @@ model PasswordResetToken {
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  priceGhs    Float
+  priceUsd    Float
+  image       String
+  category    String   @default("General")
+  stock       Int      @default(100)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Order {
+  id              String    @id @default(cuid())
+  userId          String?
+  reference       String    @unique
+  customerName    String
+  customerEmail   String
+  customerPhone   String
+  customerAddress String
+  currency        String
+  totalGhs        Float
+  totalUsd        Float
+  items           String
+  status          String    @default("pending")
+  paidAt          DateTime?
+  createdAt       DateTime  @default(now())
+}
+
+model UserActivity {
+  id        String   @id @default(cuid())
+  userId    String
+  path      String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, path])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  eventKey  String    @unique
+  type      String
+  title     String
+  message   String
+  href      String
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, readAt])
 }
