@@ -2,7 +2,7 @@
 import { db } from "../src/lib/db";
 
 const products = [
-  { name: "Guitar Capo (Silver)", description: "Heavy-duty spring capo for acoustic & electric guitars. Fits most necks.", priceGhs: 45, priceUsd: 4.0, image: "https://shop.musora.com/products/pianote-bench-and-stand", category: "Accessories" },
+  { name: "Guitar Capo (Silver)", description: "Heavy-duty spring capo for acoustic & electric guitars. Fits most necks.", priceGhs: 45, priceUsd: 4.0, image: "https://shop.musora.com/cdn/shop/files/Prima_Piano_Full_Set_1.jpg?v=1763420666&width=720", category: "Accessories" },
   { name: "Clip-on Digital Tuner", description: "Chromatic clip-on tuner with bright colour display. 360° swivel.", priceGhs: 80, priceUsd: 7.0, image: "https://picsum.photos/seed/tuner/600/600", category: "Accessories" },
   { name: "Guitar Picks (Pack of 6)", description: "Mixed-gauge celluloid picks. Celluloid for warm tone.", priceGhs: 25, priceUsd: 2.5, image: "https://picsum.photos/seed/picks/600/600", category: "Accessories" },
   { name: "Folding Music Stand", description: "Lightweight folding music stand with carry bag. Adjustable height.", priceGhs: 120, priceUsd: 10.0, image: "https://picsum.photos/seed/stand/600/600", category: "Equipment" },
