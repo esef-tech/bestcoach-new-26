@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { createUserNotification } from "@/lib/user-notifications";
+import { getPaystackSecretKey } from "@/lib/paystack";
 
 export async function GET(req: NextRequest) {
   try {
@@ -36,7 +37,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const secret = process.env.PAYSTACK_SECRET_KEY;
+    const secret = getPaystackSecretKey();
     if (!secret) {
       return NextResponse.json(
         { ok: false, message: "Payment verification is temporarily unavailable." },

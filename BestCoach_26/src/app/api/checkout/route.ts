@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { getPaystackSecretKey } from "@/lib/paystack";
 
 type LineItem = {
   id: string;
@@ -50,7 +51,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const secret = process.env.PAYSTACK_SECRET_KEY;
+    const secret = getPaystackSecretKey();
     if (!secret) {
       return NextResponse.json(
         { ok: false, message: "Payments are temporarily unavailable. Please try again later." },
