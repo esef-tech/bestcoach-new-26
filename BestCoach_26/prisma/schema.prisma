@@ -90,6 +90,8 @@ model Order {
   customerEmail   String
   customerPhone   String
   customerAddress String
+  customerLatitude  Float?
+  customerLongitude Float?
   currency        String
   totalGhs        Float
   totalUsd        Float

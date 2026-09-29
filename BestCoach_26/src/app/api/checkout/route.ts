@@ -34,8 +34,32 @@ export async function POST(req: NextRequest) {
       .toLowerCase();
     const customerPhone = String(body.customerPhone ?? "").trim();
     const customerAddress = String(body.customerAddress ?? "").trim();
+    const rawLatitude = body.customerLatitude;
+    const rawLongitude = body.customerLongitude;
     const currency: "GHS" | "USD" =
       body.currency === "USD" ? "USD" : "GHS";
+
+    if (
+      (rawLatitude == null) !== (rawLongitude == null) ||
+      (rawLatitude != null &&
+        (typeof rawLatitude !== "number" ||
+          !Number.isFinite(rawLatitude) ||
+          rawLatitude < -90 ||
+          rawLatitude > 90)) ||
+      (rawLongitude != null &&
+        (typeof rawLongitude !== "number" ||
+          !Number.isFinite(rawLongitude) ||
+          rawLongitude < -180 ||
+          rawLongitude > 180))
+    ) {
+      return NextResponse.json(
+        { ok: false, message: "The current location is invalid. Please capture it again." },
+        { status: 400 }
+      );
+    }
+
+    const customerLatitude: number | null = rawLatitude ?? null;
+    const customerLongitude: number | null = rawLongitude ?? null;
 
     if (!items.length || !customerName || !customerEmail || !customerPhone) {
       return NextResponse.json(
@@ -82,6 +106,8 @@ export async function POST(req: NextRequest) {
         customerEmail,
         customerPhone,
         customerAddress,
+        customerLatitude,
+        customerLongitude,
         currency,
         totalGhs,
         totalUsd,

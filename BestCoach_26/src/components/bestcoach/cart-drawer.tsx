@@ -11,6 +11,7 @@ import {
   Plus,
   Trash2,
   Loader2,
+  MapPin,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,6 +51,12 @@ export function CartDrawer() {
   const [open, setOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [paying, setPaying] = useState(false);
+  const [locating, setLocating] = useState(false);
+  const [location, setLocation] = useState<{
+    latitude: number;
+    longitude: number;
+    accuracy: number;
+  } | null>(null);
   const [authPromptOpen, setAuthPromptOpen] = useState(false);   
   const { status } = useSession();                                
   const authenticated = status === "authenticated";  
@@ -61,6 +68,35 @@ export function CartDrawer() {
   });
 
   const totals = cartTotals(items);
+
+  const captureLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Location services are not available in this browser.");
+      return;
+    }
+
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        setLocation({
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+          accuracy: coords.accuracy,
+        });
+        setLocating(false);
+        toast.success("Current location added to your order.");
+      },
+      (error) => {
+        setLocating(false);
+        toast.error(
+          error.code === 1
+            ? "Location permission was denied. You can still enter your delivery address."
+            : "Could not get your location. Please try again or enter your address."
+        );
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+  };
 
   const startCheckout = () => {
     if (!items.length) {
@@ -97,6 +133,8 @@ export function CartDrawer() {
           customerEmail: form.email,
           customerPhone: form.phone,
           customerAddress: form.address,
+          customerLatitude: location?.latitude ?? null,
+          customerLongitude: location?.longitude ?? null,
           currency,
         }),
       });
@@ -333,6 +371,33 @@ export function CartDrawer() {
                   setForm({ ...form, address: e.target.value })
                 }
               />
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full justify-start"
+                onClick={captureLocation}
+                disabled={locating}
+              >
+                {locating ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <MapPin className="size-4" />
+                )}
+                {locating ? "Getting location..." : "Use current location"}
+              </Button>
+              {location && (
+                <p className="text-xs text-muted-foreground" aria-live="polite">
+                  Location captured (about {Math.round(location.accuracy)} m accuracy).{" "}
+                  <a
+                    className="font-medium text-primary underline underline-offset-2"
+                    href={`https://www.google.com/maps?q=${location.latitude},${location.longitude}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    View on Google Maps
+                  </a>
+                </p>
+              )}
             </div>
             <DialogFooter>
               <Button
