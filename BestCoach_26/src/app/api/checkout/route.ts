@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { createUserNotification } from "@/lib/user-notifications";
 
 type LineItem = {
   id: string;
@@ -51,6 +50,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const secret = process.env.PAYSTACK_SECRET_KEY;
+    if (!secret) {
+      return NextResponse.json(
+        { ok: false, message: "Payments are temporarily unavailable. Please try again later." },
+        { status: 503 }
+      );
+    }
+
     const totalGhs = items.reduce(
       (s, i) => s + i.priceGhs * i.quantity,
       0
@@ -77,80 +84,53 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // ---- Paystack (real) if a secret key is configured ----
-    const secret = process.env.PAYSTACK_SECRET_KEY;
-    if (secret) {
-      const amount =
-        currency === "GHS"
-          ? Math.round(totalGhs * 100) // pesewas
-          : Math.round(totalUsd * 100); // cents
-      const origin =
-        process.env.NEXTAUTH_URL ||
-        `${req.nextUrl.protocol}//${req.headers.get("host")}`;
-      const callbackUrl = `${origin}/shop?paystack=1&reference=${reference}`;
+    const amount =
+      currency === "GHS"
+        ? Math.round(totalGhs * 100) // pesewas
+        : Math.round(totalUsd * 100); // cents
+    const origin =
+      process.env.NEXTAUTH_URL ||
+      `${req.nextUrl.protocol}//${req.headers.get("host")}`;
+    const callbackUrl = `${origin}/shop?paystack=1&reference=${reference}`;
 
-      const res = await fetch(
-        "https://api.paystack.co/transaction/initialize",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${secret}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: customerEmail,
-            amount,
-            currency,
-            reference,
-            callback_url: callbackUrl,
-            metadata: {
-              orderId: order.id,
-              custom_fields: [
-                { display_name: "Name", variable_name: "name", value: customerName },
-                { display_name: "Phone", variable_name: "phone", value: customerPhone },
-                { display_name: "Address", variable_name: "address", value: customerAddress },
-              ],
-            },
-          }),
-        }
-      );
-      const data = await res.json();
-      if (!res.ok || !data?.data?.authorization_url) {
-        console.error("[paystack init] failed:", data);
-        return NextResponse.json(
-          {
-            ok: false,
-            message: data?.message || "Could not start payment. Try again.",
-          },
-          { status: 502 }
-        );
-      }
-      return NextResponse.json({
-        ok: true,
-        mode: "paystack",
-        authorizationUrl: data.data.authorization_url,
+    const res = await fetch("https://api.paystack.co/transaction/initialize", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${secret}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: customerEmail,
+        amount,
+        currency,
         reference,
-      });
+        callback_url: callbackUrl,
+        metadata: {
+          orderId: order.id,
+          custom_fields: [
+            { display_name: "Name", variable_name: "name", value: customerName },
+            { display_name: "Phone", variable_name: "phone", value: customerPhone },
+            { display_name: "Address", variable_name: "address", value: customerAddress },
+          ],
+        },
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data?.data?.authorization_url) {
+      console.error("[paystack init] failed:", data);
+      return NextResponse.json(
+        {
+          ok: false,
+          message: data?.message || "Could not start payment. Try again.",
+        },
+        { status: 502 }
+      );
     }
-
-    // ---- Test mode (no Paystack key) — mark as paid for local/dev testing ----
-    await db.order.update({
-      where: { id: order.id },
-      data: { status: "paid", paidAt: new Date() },
-    });
-    await createUserNotification({
-      userId: session.user.id,
-      eventKey: `order-paid:${order.id}`,
-      type: "purchase",
-      title: "Purchase successful",
-      message: `Your order ${reference} was paid successfully.`,
-      href: "/profile#orders-heading",
-    });
     return NextResponse.json({
       ok: true,
-      mode: "test",
+      mode: "paystack",
+      authorizationUrl: data.data.authorization_url,
       reference,
-      message: "Test payment succeeded (no PAYSTACK_SECRET_KEY configured).",
     });
   } catch (err) {
     console.error("[checkout] error:", err);

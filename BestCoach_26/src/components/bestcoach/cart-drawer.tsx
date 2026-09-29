@@ -11,7 +11,6 @@ import {
   Plus,
   Trash2,
   Loader2,
-  CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,7 +34,6 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { useCart, formatPrice, cartTotals, type CartItem } from "@/lib/cart-store";
-import { refreshUserNotifications } from "@/lib/notification-events";
 
 export function CartDrawer() {
   const {
@@ -52,7 +50,6 @@ export function CartDrawer() {
   const [open, setOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [paying, setPaying] = useState(false);
-  const [done, setDone] = useState<{ ref: string } | null>(null);
   const [authPromptOpen, setAuthPromptOpen] = useState(false);   
   const { status } = useSession();                                
   const authenticated = status === "authenticated";  
@@ -113,13 +110,7 @@ export function CartDrawer() {
         window.location.href = data.authorizationUrl;
         return;
       }
-      // Test mode — order paid immediately
-      clear();
-      setCheckoutOpen(false);
-      setOpen(false);
-      setDone({ ref: data.reference });
-      toast.success("Payment successful! 🎉");
-      refreshUserNotifications();
+      toast.error("Could not start Paystack checkout. Please try again.");
     } catch (err) {
       console.error(err);
       toast.error("Something went wrong.");
@@ -364,28 +355,6 @@ export function CartDrawer() {
         </DialogContent>
       </Dialog>
 
-      {/* Success dialog (test mode / verified) */}
-      <Dialog open={!!done} onOpenChange={(o) => !o && setDone(null)}>
-        <DialogContent className="max-w-sm text-center">
-          <CheckCircle2 className="mx-auto size-14 text-green-500" />
-          <DialogHeader>
-            <DialogTitle>Payment successful</DialogTitle>
-            <DialogDescription>
-              Thank you! Your order reference is{" "}
-              <code className="rounded bg-muted px-1.5 py-0.5 text-xs">
-                {done?.ref}
-              </code>
-              . We&apos;ll email you a confirmation.
-            </DialogDescription>
-          </DialogHeader>
-          <Button
-            onClick={() => setDone(null)}
-            className="h-11 w-full rounded-full bg-[#00394f] font-bold hover:bg-[#00293a]"
-          >
-            Continue shopping
-          </Button>
-        </DialogContent>
-      </Dialog>
        {/* Login-required popup */}                                  
       <AuthPromptDialog
         open={authPromptOpen}
