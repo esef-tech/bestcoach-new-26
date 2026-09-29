@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { createUserNotification } from "@/lib/user-notifications";
-import { getPaystackSecretKey } from "@/lib/paystack";
+import { getPaystackSecretKey, isPaystackLiveMode } from "@/lib/paystack";
 
 export async function GET(req: NextRequest) {
   try {
@@ -40,7 +40,12 @@ export async function GET(req: NextRequest) {
     const secret = getPaystackSecretKey();
     if (!secret) {
       return NextResponse.json(
-        { ok: false, message: "Payment verification is temporarily unavailable." },
+        {
+          ok: false,
+          message: isPaystackLiveMode()
+            ? "Live Paystack verification is not configured. Add PAYSTACK_LIVE_SECRET_KEY to the deployment environment and redeploy."
+            : "Paystack test verification is not configured. Add PAYSTACK_API_KEY to the deployment environment.",
+        },
         { status: 503 }
       );
     }
