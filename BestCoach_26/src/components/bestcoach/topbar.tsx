@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Phone, Mail, Clock, Facebook, Instagram } from "lucide-react";
+import { Phone, Mail, Clock, Instagram } from "lucide-react";
 import { contactInfo } from "@/lib/data";
+import { FacebookIcon } from "@/components/bestcoach/facebook-icon";
 
 function TikTokIcon({ className }: { className?: string }) {
   return (
@@ -91,7 +92,7 @@ export function TopBar() {
             aria-label="Bestcoach on Facebook"
             className="grid size-7 place-items-center rounded-full bg-primary-foreground/10 hover:bg-primary-foreground/20 transition-colors"
           >
-            <Facebook className="size-3.5" />
+            <FacebookIcon className="size-3.5" />
           </a>
           <a
             href={contactInfo.socials.tiktok}

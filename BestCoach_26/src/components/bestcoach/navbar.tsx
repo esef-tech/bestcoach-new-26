@@ -44,8 +44,8 @@ import { Logo } from "./logo";
 import {CartDrawer } from "./cart-drawer";
 import { NotificationBell } from "./notification-bell";
 import { events } from "@/lib/data";
-import { label } from "framer-motion/client";
 
+const TEAM_PAGE_HREF = "/team";
 const NAV_LINKS = [
   { label: "Home", href: "/#home", icon: Home },
   { label: "Community", href: "/#events", icon: Users },
@@ -221,7 +221,7 @@ export function Navbar() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/#about" className="flex items-center gap-2">
+                  <Link href={TEAM_PAGE_HREF} className="flex items-center gap-2">
                     <Users className="size-4" /> Team
                   </Link>
                 </DropdownMenuItem>
@@ -266,7 +266,6 @@ export function Navbar() {
                 >
                   <Avatar className="h-7 w-7">
                     {profileImage ? (
-                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={profileImage}
                         alt={profileUsername || "user"}
@@ -410,7 +409,7 @@ export function Navbar() {
                 </SheetClose>
                 <SheetClose asChild>
                   <Link
-                    href="/#about"
+                    href={TEAM_PAGE_HREF}
                     className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm hover:bg-accent/30"
                   >
                     <Users className="size-4" /> Team
@@ -431,7 +430,6 @@ export function Navbar() {
                     <div className="mb-2 flex items-center gap-3 rounded-lg bg-accent/20 p-3">
                       <Avatar className="h-10 w-10">
                         {profileImage ? (
-                          // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={profileImage}
                             alt={profileUsername || "user"}

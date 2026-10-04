@@ -8,7 +8,6 @@ import {
   MapPin,
   Send,
   Loader2,
-  Facebook,
   Instagram,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { refreshUserNotifications } from "@/lib/notification-events";
 import { useAuthenticationPrompt } from "@/components/bestcoach/require-authentication";
 import { contactInfo } from "@/lib/data";
+import { FacebookIcon } from "@/components/bestcoach/facebook-icon";
 
 function TikTokIcon({ className }: { className?: string }) {
   return (
@@ -49,7 +49,7 @@ const QUICK_LINKS: { label: string; href: string; external?: boolean }[] = [
 
 const SOCIALS = [
   { label: "WhatsApp", href: contactInfo.socials.whatsapp, Icon: WhatsAppIcon },
-  { label: "Facebook", href: contactInfo.socials.facebook, Icon: Facebook },
+  { label: "Facebook", href: contactInfo.socials.facebook, Icon: FacebookIcon },
   { label: "TikTok", href: contactInfo.socials.tiktok, Icon: TikTokIcon },
   { label: "Instagram", href: contactInfo.socials.instagram, Icon: Instagram },
 ];
