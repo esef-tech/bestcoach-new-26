@@ -1,0 +1,40 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /careerApplications/{userId}/{applicationId}/{attachmentKind} {
+      function isOwner() {
+        return request.auth != null && request.auth.uid == userId;
+      }
+
+      function isAllowedAttachment() {
+        return attachmentKind in [
+          'cv',
+          'coverLetter',
+          'passportPhoto',
+          'nationalId'
+        ];
+      }
+
+      function hasAllowedFileType() {
+        return request.resource.contentType in [
+          'application/pdf',
+          'image/png',
+          'image/jpeg',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        ];
+      }
+
+      allow create: if isOwner()
+        && isAllowedAttachment()
+        && request.resource.size > 0
+        && request.resource.size <= 5 * 1024 * 1024
+        && hasAllowedFileType();
+
+      allow get: if isOwner() && isAllowedAttachment();
+      allow list: if false;
+      allow update: if false;
+      allow delete: if isOwner() && isAllowedAttachment();
+    }
+  }
+}

@@ -140,15 +140,30 @@ model Job {
 }
 
 model JobApplication {
-  id         String   @id @default(cuid())
-  jobId      String?
-  name       String
-  email      String
-  phone      String
-  position   String
-  portfolio  String?
-  message    String
-  resumeUrl  String?
-  status     String   @default("submitted")
-  createdAt  DateTime @default(now())
+  id          String                    @id @default(cuid())
+  jobId       String?
+  name        String
+  email       String
+  phone       String
+  position    String
+  portfolio   String?
+  message     String
+  resumeUrl   String?
+  status      String                    @default("submitted")
+  createdAt   DateTime                  @default(now())
+  attachments JobApplicationAttachment[]
+}
+
+model JobApplicationAttachment {
+  id            String         @id @default(cuid())
+  applicationId String
+  kind          String
+  fileName      String
+  mimeType      String
+  fileSize      Int
+  data          Bytes
+  createdAt     DateTime       @default(now())
+  application   JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
 }

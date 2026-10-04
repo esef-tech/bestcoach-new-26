@@ -34,8 +34,22 @@ import { TopBar } from "@/components/bestcoach/topbar";
 import { Navbar } from "@/components/bestcoach/navbar";
 import { Footer } from "@/components/bestcoach/footer";
 import { AuthPromptDialog } from "@/components/bestcoach/auth-prompt";
-import { db as firestoreDb, firebaseConfigured } from "@/lib/firebase";   
-import { collection, addDoc, serverTimestamp } from "firebase/firestore"; 
+import {
+  auth as firebaseAuth,
+  db as firestoreDb,
+  firebaseConfigured,
+  storage,
+} from "@/lib/firebase";
+import { deleteDoc, doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { deleteObject, ref as storageRef, uploadBytes } from "firebase/storage";
+import {
+  CAREER_ALLOWED_FILE_TYPES,
+  CAREER_UPLOAD_ACCEPT,
+  CAREER_UPLOAD_FIELDS,
+  CAREER_UPLOAD_MAX_FILE_BYTES,
+  CAREER_UPLOAD_MAX_TOTAL_BYTES,
+  type CareerUploadField,
+} from "@/lib/career-uploads";
 
 type Job = {
   id: string;
@@ -116,6 +130,7 @@ export default function CareersPage() {
     message: "",
     resumeUrl: "",
   });
+  const [uploads, setUploads] = useState<Partial<Record<CareerUploadField, File>>>({});
   const [selectedJobId, setSelectedJobId] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const authenticated = status === "authenticated";
@@ -179,39 +194,109 @@ export default function CareersPage() {
       toast.error("Please fill in name, email, phone, position and a short message.");
       return;
     }
+    const selectedFiles = CAREER_UPLOAD_FIELDS.flatMap(({ key }) => {
+      const file = uploads[key];
+      return file ? [{ key, file }] : [];
+    });
+    const totalBytes = selectedFiles.reduce((total, { file }) => total + file.size, 0);
+    if (totalBytes > CAREER_UPLOAD_MAX_TOTAL_BYTES) {
+      toast.error("Your attachments exceed the 20 MB total upload limit.");
+      return;
+    }
+    for (const { key, file } of selectedFiles) {
+      const extension = `.${file.name.split(".").pop()?.toLowerCase() ?? ""}`;
+      const allowedType = CAREER_ALLOWED_FILE_TYPES[extension];
+      if (
+        !allowedType ||
+        (file.type && file.type !== allowedType) ||
+        file.size > CAREER_UPLOAD_MAX_FILE_BYTES
+      ) {
+        toast.error(
+          `${CAREER_UPLOAD_FIELDS.find((field) => field.key === key)?.label} must be a PDF, PNG, JPG, or DOCX file no larger than 5 MB.`
+        );
+        return;
+      }
+    }
+    if (!firebaseConfigured || !firestoreDb || !storage || !firebaseAuth) {
+      toast.error("File storage is not configured. Please contact support.");
+      return;
+    }
+    const firebaseUser = firebaseAuth.currentUser;
+    if (!firebaseUser) {
+      toast.error(
+        "Use Google or Microsoft sign-in to upload application files. Your account must be signed in with Firebase."
+      );
+      return;
+    }
+
+    const firebaseStorage = storage;
+    const firebaseFirestore = firestoreDb;
     setSubmitting(true);
+    const applicationId = crypto.randomUUID();
+    const uploadedStoragePaths: string[] = [];
+    let firestoreRecordCreated = false;
     try {
+      const attachmentMetadata: {
+        kind: CareerUploadField;
+        fileName: string;
+        mimeType: string;
+        fileSize: number;
+        storagePath: string;
+      }[] = [];
+      for (const { key, file } of selectedFiles) {
+        const path = `careerApplications/${firebaseUser.uid}/${applicationId}/${key}`;
+        const extension = `.${file.name.split(".").pop()?.toLowerCase() ?? ""}`;
+        const mimeType = file.type || CAREER_ALLOWED_FILE_TYPES[extension];
+        const fileRef = storageRef(firebaseStorage, path);
+        await uploadBytes(fileRef, file, {
+          contentType: mimeType,
+        });
+        uploadedStoragePaths.push(path);
+        attachmentMetadata.push({
+          kind: key,
+          fileName: file.name,
+          mimeType,
+          fileSize: file.size,
+          storagePath: path,
+        });
+      }
+
+      const applicationRecord = {
+        applicationId,
+        ownerUid: firebaseUser.uid,
+        jobId: selectedJobId || null,
+        ...form,
+        attachments: attachmentMetadata,
+        status: "submitted",
+        timestamp: serverTimestamp(),
+      };
+      await setDoc(
+        doc(firebaseFirestore, "careerApplications", applicationId),
+        applicationRecord
+      );
+      firestoreRecordCreated = true;
+
+      const body = new FormData();
+      body.set("applicationId", applicationId);
+      body.set("jobId", selectedJobId);
+      for (const [key, value] of Object.entries(form)) {
+        body.set(key, value);
+      }
+      for (const { key, file } of selectedFiles) {
+        body.set(key, file);
+      }
+
       const res = await fetch("/api/careers/apply", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...form,
-          jobId: selectedJobId || null,
-        }),
+        body,
       });
       const data = await res.json();
       if (res.status === 401) {
         setAuthPromptOpen(true);
-        return;
+        throw new Error("Sign in again to submit your application.");
       }
       if (!res.ok || !data.ok) {
-        toast.error(data.message || "Could not submit application.");
-        return;
-      }
-
-
-      // Mirror the application to Firebase Firestore (client-side, best-effort).
-      // Uses the project's existing firebase.ts `db` export; skipped when
-      // Firebase isn't configured or `db` is unavailable (e.g. during SSR).
-      if (firebaseConfigured && firestoreDb) {
-        try {
-          await addDoc(collection(firestoreDb, "careerApplications"), {
-            ...(data.record ?? {}),
-            timestamp: serverTimestamp(),
-          });
-        } catch (fbErr) {
-          console.error("[careers] firebase mirror failed:", fbErr);
-        }
+        throw new Error(data.message || "Could not submit application.");
       }
 
       toast.success(data.message);
@@ -225,9 +310,36 @@ export default function CareersPage() {
         resumeUrl: "",
       });
       setSelectedJobId("");
-    } catch (err) {
-      console.error(err);
-      toast.error("Something went wrong.");
+      setUploads({});
+      for (const field of CAREER_UPLOAD_FIELDS) {
+        const input = document.getElementById(
+          `c-upload-${field.key}`
+        ) as HTMLInputElement | null;
+        if (input) input.value = "";
+      }
+    } catch (error) {
+      console.error("[careers] application upload failed:", error);
+      if (firestoreRecordCreated) {
+        try {
+          await deleteDoc(doc(firebaseFirestore, "careerApplications", applicationId));
+        } catch (cleanupError) {
+          console.error("[careers] Firestore cleanup failed:", cleanupError);
+        }
+      }
+      await Promise.all(
+        uploadedStoragePaths.map(async (path) => {
+          try {
+            await deleteObject(storageRef(firebaseStorage, path));
+          } catch (cleanupError) {
+            console.error(`[careers] Storage cleanup failed for ${path}:`, cleanupError);
+          }
+        })
+      );
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Could not securely submit your application and attachments."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -531,6 +643,28 @@ export default function CareersPage() {
                     onChange={(e) => setForm({ ...form, resumeUrl: e.target.value })}
                   />
                 </div>
+                {CAREER_UPLOAD_FIELDS.map(({ key, label }) => (
+                  <div key={key} className="space-y-1.5 sm:col-span-2">
+                    <Label htmlFor={`c-upload-${key}`}>{label} file (optional)</Label>
+                    <Input
+                      id={`c-upload-${key}`}
+                      type="file"
+                      accept={CAREER_UPLOAD_ACCEPT}
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        setUploads((current) => ({
+                          ...current,
+                          [key]: file,
+                        }));
+                      }}
+                      className="h-auto min-h-10 cursor-pointer py-2"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      PDF, PNG, JPG, or DOCX; up to 5 MB per file.
+                      {uploads[key] && ` Selected: ${uploads[key].name}`}
+                    </p>
+                  </div>
+                ))}
                 <div className="space-y-1.5 sm:col-span-2">
                   <Label htmlFor="c-message">Why should we hire you?</Label>
                   <Textarea

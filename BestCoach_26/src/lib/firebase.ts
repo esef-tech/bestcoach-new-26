@@ -1,6 +1,7 @@
 import { getApp, getApps, initializeApp } from "firebase/app";
 import { getAuth, type Auth } from "firebase/auth";
 import { getFirestore, type Firestore } from "firebase/firestore";
+import { getStorage, type FirebaseStorage } from "firebase/storage";
 import { firebaseConfig } from "@/lib/firebase-config";
 
 export const firebaseConfigured = [
@@ -24,3 +25,6 @@ export const auth: Auth = isBrowser && app
 export const db: Firestore = isBrowser && app
   ? getFirestore(app)
   : (null as unknown as Firestore);
+export const storage: FirebaseStorage | null = isBrowser && app
+  ? getStorage(app)
+  : null;
