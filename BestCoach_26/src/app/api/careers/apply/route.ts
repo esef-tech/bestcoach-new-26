@@ -94,7 +94,13 @@ export async function POST(req: NextRequest) {
     let totalFileBytes = 0;
     for (const { key } of CAREER_UPLOAD_FIELDS) {
       const value = body.get(key);
-      if (value === null) continue;
+      if (value === null) {
+        const label = CAREER_UPLOAD_FIELDS.find((field) => field.key === key)?.label ?? key;
+        return NextResponse.json(
+          { ok: false, message: `Upload the required ${label} file.` },
+          { status: 400 }
+        );
+      }
       if (typeof value === "string" || value.size === 0) {
         return NextResponse.json(
           { ok: false, message: `The ${key} attachment is invalid.` },

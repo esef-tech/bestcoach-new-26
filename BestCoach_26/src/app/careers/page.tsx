@@ -198,6 +198,13 @@ export default function CareersPage() {
       const file = uploads[key];
       return file ? [{ key, file }] : [];
     });
+    const missingFiles = CAREER_UPLOAD_FIELDS.filter(({ key }) => !uploads[key]);
+    if (missingFiles.length > 0) {
+      toast.error(
+        `Upload all required documents: ${missingFiles.map(({ label }) => label).join(", ")}.`
+      );
+      return;
+    }
     const totalBytes = selectedFiles.reduce((total, { file }) => total + file.size, 0);
     if (totalBytes > CAREER_UPLOAD_MAX_TOTAL_BYTES) {
       toast.error("Your attachments exceed the 20 MB total upload limit.");
@@ -645,11 +652,12 @@ export default function CareersPage() {
                 </div>
                 {CAREER_UPLOAD_FIELDS.map(({ key, label }) => (
                   <div key={key} className="space-y-1.5 sm:col-span-2">
-                    <Label htmlFor={`c-upload-${key}`}>{label} file (optional)</Label>
+                    <Label htmlFor={`c-upload-${key}`}>{label} file (required)</Label>
                     <Input
                       id={`c-upload-${key}`}
                       type="file"
                       accept={CAREER_UPLOAD_ACCEPT}
+                      required
                       onChange={(event) => {
                         const file = event.target.files?.[0];
                         setUploads((current) => ({
