@@ -20,6 +20,7 @@ import {
   UserRound,
   Settings,
   ShoppingBag,
+  Briefcase,
 } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -225,6 +226,11 @@ export function Navbar() {
                     <Users className="size-4" /> Team
                   </Link>
                 </DropdownMenuItem>
+                 <DropdownMenuItem asChild>
+                  <Link href="/careers" className="flex items-center gap-2">
+                    <Briefcase className="size-4" /> Careers
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/#contact" className="flex items-center gap-2">
                     <Phone className="size-4" /> Contact
@@ -413,6 +419,11 @@ export function Navbar() {
                     className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm hover:bg-accent/30"
                   >
                     <Users className="size-4" /> Team
+                  </Link>
+                </SheetClose>
+                 <SheetClose asChild>
+                  <Link href="/careers" className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm hover:bg-accent/30">
+                    <Briefcase className="size-4" /> Careers
                   </Link>
                 </SheetClose>
                 <SheetClose asChild>
