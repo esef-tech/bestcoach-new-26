@@ -434,6 +434,17 @@ export function Navbar() {
                     <Phone className="size-4" /> Contact
                   </Link>
                 </SheetClose>
+                 <p className="mt-2 px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  TLP
+                </p>
+                <SheetClose asChild>
+                  <Link
+                    href="/#about"
+                    className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm hover:bg-accent/30"
+                  >
+                    <Info className="size-4" /> The Loyalty Project
+                  </Link>
+                </SheetClose>
               </nav>
               <div className="mt-auto flex flex-col gap-2 p-4">
                 {authenticated ? (
