@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { RequireAuthentication } from "@/components/bestcoach/require-authentication";
 import { motion } from "framer-motion";
-import { Sparkles, ArrowRight, Music2 } from "lucide-react";
+import { ArrowRight, Music2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { services } from "@/lib/data";
@@ -50,7 +50,7 @@ export function Services() {
           transition={{ duration: 0.5 }}
         >
           <Badge className="mb-3 bg-primary/10 text-primary border-primary/20">
-            <Sparkles className="size-3" /> Our Offerings
+             Our Offerings
           </Badge>
           <h2
             id="services-heading"

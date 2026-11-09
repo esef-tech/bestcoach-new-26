@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Sparkles, ExternalLink } from "lucide-react";
+import {  ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RequireAuthentication } from "@/components/bestcoach/require-authentication";
@@ -52,7 +52,7 @@ export function Hero() {
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
           <Badge className="w-fit gap-1.5 bg-primary/10 text-primary border-primary/20">
-            <Sparkles className="size-3" /> Bestcoach Music 🎶
+             Bestcoach Music 🎶
           </Badge>
           <h1
             id="hero-heading"

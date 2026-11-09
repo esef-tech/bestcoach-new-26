@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Star, Users, Clock, CalendarDays, Tag, Loader2, Send, GraduationCap } from "lucide-react";
+import {Star, Users, Clock, CalendarDays, Tag, Loader2, Send, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -219,7 +219,7 @@ export function Programs() {
           transition={{ duration: 0.5 }}
         >
           <Badge className="mb-3 bg-primary/10 text-primary border-primary/20">
-            <Sparkles className="size-3" /> Bestcoach Music
+             Bestcoach Music
           </Badge>
           <h2
             id="programs-heading"
