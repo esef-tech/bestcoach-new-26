@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
-  Sparkles,
   CheckCircle2,
   GraduationCap,
   Send,
@@ -103,7 +102,7 @@ export function Register() {
           className="flex flex-col gap-5"
         >
           <Badge className="w-fit bg-primary/10 text-primary border-primary/20">
-            <Sparkles className="size-3" /> Bestcoach music
+             Bestcoach music
           </Badge>
           <h2
             id="register-heading"
