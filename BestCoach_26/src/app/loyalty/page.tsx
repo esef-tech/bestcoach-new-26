@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, ArrowDown } from "lucide-react";
+import { ArrowRight, ArrowDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { TopBar } from "@/components/bestcoach/topbar";
 import { Navbar } from "@/components/bestcoach/navbar";
 import { Footer } from "@/components/bestcoach/footer";
@@ -18,52 +19,193 @@ import {
   perksHeading,
   perks,
   cta,
-  testimonial,
+  testimonials,
 } from "@/lib/loyalty-data";
 
+/* ============ Auto-rotating testimonial carousel ============ */
+function TestimonialCarousel() {
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const count = testimonials.length;
+
+  const go = (dir: number) => setIndex((i) => (i + dir + count) % count);
+
+  useEffect(() => {
+    if (paused || count <= 1) return;
+    const id = setInterval(() => setIndex((i) => (i + 1) % count), 6000);
+    return () => clearInterval(id);
+  }, [paused, count]);
+
+  return (
+    <section className="bg-gradient-to-b from-[#04101b] to-[#020a12] px-6 py-16 md:py-20">
+      <div
+        className="relative mx-auto max-w-3xl"
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+      >
+        {/* Slides */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0e3854] to-[#0a2c44] shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+          {testimonials.map((t, i) => (
+            <div
+              key={i}
+              aria-hidden={i !== index}
+              className="absolute inset-0 transition-all duration-700 ease-in-out"
+              style={{
+                opacity: i === index ? 1 : 0,
+                transform: i === index ? "translateX(0)" : "translateX(40px)",
+                pointerEvents: i === index ? "auto" : "none",
+              }}
+            >
+              <div className="flex flex-col items-center gap-6 p-8 text-center sm:p-12 md:flex-row md:text-left">
+                {/* Avatar */}
+                <div className="relative shrink-0">
+                  <div className="absolute inset-0 -m-1 rounded-full bg-[#f59e0b]/40 blur-md" />
+                  <img
+                    src={t.image}
+                    alt={t.who}
+                    className="relative size-24 rounded-full border-2 border-[#f59e0b] object-cover shadow-lg sm:size-28"
+                  />
+                </div>
+                {/* Quote */}
+                <div className="min-w-0 flex-1">
+                  <span className="block font-serif text-4xl leading-none text-[#f59e0b]">
+                    ”
+                  </span>
+                  <blockquote className="mt-1 text-sm font-semibold italic leading-relaxed text-[#eef4f8] sm:text-base">
+                    {t.quote}
+                  </blockquote>
+                  <div className="mt-4 text-base font-extrabold text-white">
+                    {t.who}
+                  </div>
+                  <div className="mt-1 text-xs text-[#9db4c2]">{t.role}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+          {/* Spacer to give the absolute slides height */}
+          <div className="pointer-events-none invisible p-8 sm:p-12">
+            <div className="flex flex-col items-center gap-6 md:flex-row">
+              <div className="size-24 shrink-0 sm:size-28" />
+              <div className="min-w-0 flex-1">
+                <span className="block font-serif text-4xl leading-none">”</span>
+                <p className="mt-1 min-h-[80px] text-sm sm:text-base" />
+                <div className="mt-4 text-base font-extrabold">.</div>
+                <div className="mt-1 text-xs">.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Prev / next arrows */}
+        {count > 1 && (
+          <>
+            <button
+              onClick={() => go(-1)}
+              aria-label="Previous testimonial"
+              className="absolute -left-3 top-1/2 z-10 grid size-10 -translate-y-1/2 place-items-center rounded-full border border-[#3a5b70] bg-transparent text-[#c7d3da] transition hover:bg-[#f59e0b] hover:text-[#1a0f00]"
+            >
+              <ChevronLeft className="size-4" />
+            </button>
+            <button
+              onClick={() => go(1)}
+              aria-label="Next testimonial"
+              className="absolute -right-3 top-1/2 z-10 grid size-10 -translate-y-1/2 place-items-center rounded-full border border-[#3a5b70] bg-transparent text-[#c7d3da] transition hover:bg-[#f59e0b] hover:text-[#1a0f00]"
+            >
+              <ChevronRight className="size-4" />
+            </button>
+          </>
+        )}
+
+        {/* Dots */}
+        <div className="mt-8 flex justify-center gap-2">
+          {testimonials.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setIndex(i)}
+              aria-label={`Go to testimonial ${i + 1}`}
+              className={`h-2.5 rounded-full transition-all ${
+                i === index ? "w-8 bg-[#f59e0b]" : "w-2.5 bg-[#28506a] hover:bg-[#3a5b70]"
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function LoyaltyPage() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Ensure the background video plays (some browsers need a nudge)
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    const tryPlay = () => v.play().catch(() => {});
+    tryPlay();
+    v.addEventListener("canplay", tryPlay);
+    return () => v.removeEventListener("canplay", tryPlay);
+  }, []);
+
   return (
     <div className="flex min-h-screen flex-col bg-[#001a26] text-white">
       <TopBar />
       <Navbar />
       <main className="flex-1">
-        {/* ============ HERO ============ */}
-        <section className="bg-gradient-to-b from-[#020a12] via-[#04121e] to-[#03111c] px-6 py-20 text-center md:py-28">
-          <div className="font-extrabold uppercase tracking-[0.35em] text-[#f59e0b] text-sm">
-            {hero.brand}
-          </div>
-          <div className="mt-1 text-[11px] uppercase tracking-[0.3em] text-[#cfd8dc]">
-            {hero.brandSub}
-          </div>
-          <h1 className="mt-4 font-black leading-[0.95]">
-            <span className="block text-6xl text-white sm:text-7xl md:text-8xl lg:text-9xl">
-              {hero.line1}
-            </span>
-            <span className="mt-1 block text-5xl uppercase text-[#f59e0b] sm:text-6xl md:text-7xl">
-              {hero.line2}
-            </span>
-          </h1>
-          <p className="mt-6 text-lg tracking-wide text-[#e2e8f0] sm:text-xl">
-            {hero.tagline}
-          </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-4">
-            <Link
-              href="#moments"
-              className="rounded-full bg-[#f59e0b] px-7 py-3.5 text-xs font-bold uppercase tracking-wider text-[#1a0f00] shadow-[0_0_24px_rgba(245,158,11,0.35)] transition hover:-translate-y-0.5 sm:text-sm"
-            >
-              {hero.ctaPrimary}
-            </Link>
-            <button className="rounded-full border border-[#4b5b66] bg-transparent px-7 py-3.5 text-xs font-bold uppercase tracking-wider text-white transition hover:-translate-y-0.5 sm:text-sm">
-              {hero.ctaSecondary}
-            </button>
-          </div>
-          <div className="mt-14 flex flex-col items-center text-[11px] uppercase tracking-[0.3em] text-[#7f93a1]">
-            {hero.scrollHint}
-            <ArrowDown className="mt-2 size-4 text-[#9fb3c0]" />
+        {/* ============ HERO with background video ============ */}
+        <section className="relative overflow-hidden px-6 py-20 text-center md:py-28">
+          {/* Background video */}
+          <video
+            ref={videoRef}
+            className="absolute inset-0 size-full object-cover"
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster="https://bestcoach-front.vercel.app/static/media/Coach.9f8dc9ce950601b9cc93.webp"
+          >
+            <source src={hero.videoUrl} type="video/mp4" />
+          </video>
+          {/* Dark overlay so text stays readable */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#020a12]/85 via-[#04121e]/80 to-[#03111c]/90" />
+
+          <div className="relative">
+            <div className="font-extrabold uppercase tracking-[0.35em] text-[#f59e0b] text-sm">
+              {hero.brand}
+            </div>
+            <div className="mt-1 text-[11px] uppercase tracking-[0.3em] text-[#cfd8dc]">
+              {hero.brandSub}
+            </div>
+            <h1 className="mt-4 font-black leading-[0.95]">
+              <span className="block text-6xl text-white drop-shadow-lg sm:text-7xl md:text-8xl lg:text-9xl">
+                {hero.line1}
+              </span>
+              <span className="mt-1 block text-5xl uppercase text-[#f59e0b] drop-shadow-lg sm:text-6xl md:text-7xl">
+                {hero.line2}
+              </span>
+            </h1>
+            <p className="mt-6 text-lg tracking-wide text-[#e2e8f0] sm:text-xl">
+              {hero.tagline}
+            </p>
+            <div className="mt-8 flex flex-wrap justify-center gap-4">
+              <Link
+                href="#moments"
+                className="rounded-full bg-[#f59e0b] px-7 py-3.5 text-xs font-bold uppercase tracking-wider text-[#1a0f00] shadow-[0_0_24px_rgba(245,158,11,0.35)] transition hover:-translate-y-0.5 sm:text-sm"
+              >
+                {hero.ctaPrimary}
+              </Link>
+              <button className="rounded-full border border-[#4b5b66] bg-black/30 px-7 py-3.5 text-xs font-bold uppercase tracking-wider text-white backdrop-blur transition hover:-translate-y-0.5 sm:text-sm">
+                {hero.ctaSecondary}
+              </button>
+            </div>
+            <div className="mt-14 flex flex-col items-center text-[11px] uppercase tracking-[0.3em] text-[#7f93a1]">
+              {hero.scrollHint}
+              <ArrowDown className="mt-2 size-4 text-[#9fb3c0]" />
+            </div>
           </div>
         </section>
 
-        {/* ============ TEAM MOMENTS MASONRY ============ */}
+        {/* ============ TEAM MOMENTS MASONRY (5 real images) ============ */}
         <section
           id="moments"
           className="bg-gradient-to-b from-[#07293f] via-[#0a3049] to-[#082a41] px-6 py-16 md:py-24"
@@ -80,11 +222,19 @@ export default function LoyaltyPage() {
             {moments.slice(1).map((m, i) => (
               <div
                 key={i}
-                className={`min-h-[220px] rounded-2xl bg-[#0f3c58] p-4 shadow-[0_10px_24px_rgba(0,0,0,0.25)] ${
+                className={`group relative min-h-[220px] overflow-hidden rounded-2xl bg-[#0f3c58] p-3 shadow-[0_10px_24px_rgba(0,0,0,0.25)] ${
                   i === moments.length - 2 ? "col-span-2 min-h-[240px] sm:col-span-3" : ""
                 }`}
               >
-                <p className="text-xs font-semibold text-[#b9cdd9]">{m.caption}</p>
+                <img
+                  src={m.image}
+                  alt={m.caption}
+                  className="absolute inset-0 size-full object-cover transition duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
+                <p className="absolute bottom-3 left-3 right-3 text-xs font-semibold text-white opacity-0 transition group-hover:opacity-100">
+                  {m.caption}
+                </p>
               </div>
             ))}
           </div>
@@ -104,7 +254,7 @@ export default function LoyaltyPage() {
           </div>
         </section>
 
-        {/* ============ QUOTE / FILL ============ */}
+        {/* ============ QUOTE / FILL (6 real images) ============ */}
         <section className="bg-gradient-to-b from-[#0a3350] to-[#0c3c59] px-6 py-24 text-center md:py-28">
           <div className="text-xs font-bold uppercase tracking-[0.25em] text-[#f59e0b]">
             {fillEyebrow}
@@ -118,9 +268,19 @@ export default function LoyaltyPage() {
             {fillCards.map((c, i) => (
               <div
                 key={i}
-                className="min-h-[180px] rounded-2xl bg-[#0f3c58] p-4 shadow-[0_10px_24px_rgba(0,0,0,0.25)]"
+                className="group relative min-h-[180px] overflow-hidden rounded-2xl bg-[#0f3c58] shadow-[0_10px_24px_rgba(0,0,0,0.25)]"
               >
-                <p className="text-xs font-semibold text-[#b9cdd9]">{c.caption}</p>
+                {c.image && (
+                  <img
+                    src={c.image}
+                    alt={c.caption}
+                    className="absolute inset-0 size-full object-cover transition duration-500 group-hover:scale-105"
+                  />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
+                <p className="absolute bottom-3 left-3 right-3 text-xs font-semibold text-white opacity-0 transition group-hover:opacity-100">
+                  {c.caption}
+                </p>
               </div>
             ))}
           </div>
@@ -132,7 +292,6 @@ export default function LoyaltyPage() {
             {expectHeading}
           </h2>
           <div className="relative mx-auto max-w-2xl">
-            {/* vertical orange line */}
             <div className="absolute bottom-10 left-[29px] top-8 w-[3px] bg-[#f59e0b]" />
             <div className="space-y-14">
               {timeline.map((s) => (
@@ -210,32 +369,8 @@ export default function LoyaltyPage() {
           </Link>
         </section>
 
-        {/* ============ TESTIMONIAL ============ */}
-        <section className="bg-gradient-to-b from-[#04101b] to-[#020a12] px-6 py-16 md:py-20">
-          <div className="relative mx-auto max-w-3xl rounded-3xl bg-gradient-to-br from-[#0e3854] to-[#0a2c44] p-10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] md:p-14">
-            <span className="block font-serif text-5xl leading-none text-[#f59e0b]">
-              ”
-            </span>
-            <blockquote className="mx-auto max-w-xl text-base font-semibold italic leading-relaxed text-[#eef4f8] md:text-lg">
-              {testimonial.quote}
-            </blockquote>
-            <div className="mt-7 text-base font-extrabold">{testimonial.who}</div>
-            <div className="mt-1.5 text-xs text-[#9db4c2]">{testimonial.role}</div>
-            <Link
-              href="/team"
-              className="mt-5 inline-block rounded-lg bg-[#f59e0b] px-4 py-2 text-xs font-bold text-[#1a0f00]"
-            >
-              {testimonial.readMore} →
-            </Link>
-          </div>
-          {/* dots */}
-          <div className="mt-12 flex justify-center gap-2">
-            <span className="size-2.5 rounded-full bg-[#28506a]" />
-            <span className="size-2.5 rounded-full bg-[#28506a]" />
-            <span className="size-2.5 rounded-full bg-[#f59e0b]" />
-            <span className="size-2.5 rounded-full bg-[#28506a]" />
-          </div>
-        </section>
+        {/* ============ TESTIMONIAL CAROUSEL (animated) ============ */}
+        <TestimonialCarousel />
       </main>
       <Footer />
     </div>

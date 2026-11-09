@@ -21,7 +21,14 @@ export type Moment = {
   image?: string; // optional photo
 };
 
-/* Hero */
+export type Testimonial = {
+  quote: string;
+  who: string;
+  role: string;
+  image: string;
+};
+
+/* Hero — with background video */
 export const hero = {
   brand: "Bestcoach",
   brandSub: "Music",
@@ -31,18 +38,32 @@ export const hero = {
   ctaPrimary: "Explore the Project",
   ctaSecondary: "Watch Trailer",
   scrollHint: "Scroll to explore",
+  videoUrl:
+    "https://player.vimeo.com/progressive_redirect/playback/1069332461/rendition/540p/file.mp4?loc=external&signature=091de529f5ff88f52584a0b882c23a6cb692594dc08bb5e4fa8393f94ccbded3",
 };
 
-/* Team moments masonry (captions exactly as in the design) */
+/* Team moments masonry (5 images, real URLs) */
 export const moments: Moment[] = [
   {
     caption: "Bestcoach team and the loyalty moment 2",
-    image: "https://picsum.photos/seed/bc-tlp-moment-1/600/660",
+    image: "https://bestcoach-front.vercel.app/static/media/Coach.9f8dc9ce950601b9cc93.webp",
   },
-  { caption: "Bestcoach team and the loyalty moment 3" },
-  { caption: "Bestcoach team and the loyalty moment 4" },
-  { caption: "Bestcoach team and the loyalty moment 5" },
-  { caption: "Bestcoach team and the loyalty moment 6" },
+  {
+    caption: "Bestcoach team and the loyalty moment 3",
+    image: "https://bestcoach-front.vercel.app/static/media/8.53ee105175f6e66eaa9a.webp",
+  },
+  {
+    caption: "Bestcoach team and the loyalty moment 4",
+    image: "https://d21q7xesnoiieh.cloudfront.net/fit-in/670x0/filters:quality(95)/marketing/musora/lead-gen/careers/careers-images-09.webp",
+  },
+  {
+    caption: "Bestcoach team and the loyalty moment 5",
+    image: "https://d21q7xesnoiieh.cloudfront.net/fit-in/670x0/filters:quality(95)/marketing/musora/lead-gen/careers/careers-images-06.webp",
+  },
+  {
+    caption: "Bestcoach team and the loyalty moment 6",
+    image: "https://bestcoach-front.vercel.app/static/media/9345.cc62baa0e2d8a0f3b408.webp"
+  },
 ];
 
 /* Why section — three paragraphs verbatim */
@@ -53,16 +74,34 @@ export const whyParagraphs: string[] = [
   "Joining The Loyalty Project means more than a job. It's a mission. You'll care about the details, and we'll care about you. From the tools you use to the team you're on, we're in it together.",
 ];
 
-/* Fill section */
+/* Fill section — 6 images */
 export const fillEyebrow = "If you resonate with these then...";
 export const fillHeading = "LET'S FILL THE WORLD WITH MUSIC!";
 export const fillCards: Moment[] = [
-  { caption: "Bestcoach Music Loyalty moment 1" },
-  { caption: "Bestcoach Music Loyalty moment 2" },
-  { caption: "Bestcoach Music Loyalty moment 3" },
-  { caption: "Bestcoach Music Loyalty moment 4" },
-  { caption: "Bestcoach Music Loyalty moment 5" },
-  { caption: "Bestcoach Music Loyalty moment 6" },
+  {
+    caption: "Bestcoach Music Loyalty moment 1",
+    image: "https://d21q7xesnoiieh.cloudfront.net/fit-in/670x0/filters:quality(95)/marketing/musora/lead-gen/careers/careers-images-07.webp",
+  },
+  {
+    caption: "Bestcoach Music Loyalty moment 2",
+    image: "https://d21q7xesnoiieh.cloudfront.net/fit-in/670x0/filters:quality(95)/marketing/musora/lead-gen/careers/careers-images-06.webp",
+  },
+  {
+    caption: "Bestcoach Music Loyalty moment 3",
+    image: "https://d21q7xesnoiieh.cloudfront.net/fit-in/710x0/filters:quality(95)/marketing/musora/lead-gen/careers/careers-images-04.webp",
+  },
+  {
+    caption: "Bestcoach Music Loyalty moment 4",
+    image: "https://bestcoach-front.vercel.app/static/media/6.1e01f3f5a1ffa39bac3a.webp",
+  },
+  {
+    caption: "Bestcoach Music Loyalty moment 5",
+    image: "https://bestcoach-front.vercel.app/static/media/NANA-SARFO.1416a9c1883c8a8e0c13.webp",
+  },
+  {
+    caption: "Bestcoach Music Loyalty moment 6",
+    image: "https://bestcoach-front.vercel.app/static/media/Precious.13186eb9aff5b2ee9310.webp",
+  },
 ];
 
 /* What to expect — 8-step timeline */
@@ -150,11 +189,27 @@ export const cta = {
   button: "Enroll Now!",
 };
 
-/* Testimonial */
-export const testimonial = {
-  quote:
-    "At Bestcoach Music, creativity and care for people are so perfectly balanced. Bestcoach Music doesn't just talk about community — we live it every day.",
-  who: "Nana Sarfo",
-  role: "Media Lead, Bestcoach Music",
-  readMore: "Read more",
-};
+/* Testimonials — 3 rotating */
+export const testimonials: Testimonial[] = [
+  {
+    quote:
+      "At Bestcoach Music, creativity and care for people are so perfectly balanced. Bestcoach Music doesn't just talk about community — we live it every day.",
+    who: "Nana Sarfo",
+    role: "Media Lead, Bestcoach Music",
+    image: "https://bestcoach-front.vercel.app/static/media/NANA-SARFO.1416a9c1883c8a8e0c13.webp",
+  },
+  {
+    quote:
+      "At Bestcoach Music, talent and humility go hand in hand. People are focused, good at what they do, and genuinely want to collaborate. No ego, just shared goals. That kind of openness is rare, and it's something I deeply value.",
+    who: "Tracy Bonful",
+    role: "Data Engineering Lead, Bestcoach Music",
+    image: "https://bestcoach-front.vercel.app/static/media/6.1e01f3f5a1ffa39bac3a.webp",
+  },
+  {
+    quote:
+      "Being part of Bestcoach Music feels like being part of a band. Everyone listens, everyone contributes, and the result is music that moves people. The culture is truly special.",
+    who: "Precious Nkrumah",
+    role: "Graphics, Creativity & Reliability Lead, Bestcoach Music",
+    image: "https://bestcoach-front.vercel.app/static/media/Precious.13186eb9aff5b2ee9310.webp",
+  },
+];
