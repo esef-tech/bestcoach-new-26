@@ -21,6 +21,8 @@ import {
   Settings,
   ShoppingBag,
   Briefcase,
+  Heart,
+  Award,
 } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -245,14 +247,15 @@ export function Navbar() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-foreground/80 hover:text-primary hover:bg-accent/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                  <Heart className="size-4 text-amber-500" />
                   TLP
                   <ChevronDown className="size-3.5" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
-                  <Link href="/#about" className="flex items-center gap-2">
-                    <Info className="size-4" /> The Loyalty Project
+                  <Link href="/loyalty" className="flex items-center gap-2">
+                     <Award className="size-3.5" />  The Loyalty Project
                   </Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -450,14 +453,15 @@ export function Navbar() {
                   </Link>
                 </SheetClose>
                  <p className="mt-2 px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                   <Heart className="size-4 text-amber-500" />
                   TLP
                 </p>
                 <SheetClose asChild>
                   <Link
-                    href="/#about"
+                    href="/loyalty"
                     className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm hover:bg-accent/30"
                   >
-                    <Info className="size-4" /> The Loyalty Project
+                      <Award className="size-3.5" />The Loyalty Project
                   </Link>
                 </SheetClose>
               </nav>

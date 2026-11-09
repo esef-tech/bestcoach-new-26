@@ -1,0 +1,243 @@
+"use client";
+
+import Link from "next/link";
+import { ArrowRight, ArrowDown } from "lucide-react";
+import { TopBar } from "@/components/bestcoach/topbar";
+import { Navbar } from "@/components/bestcoach/navbar";
+import { Footer } from "@/components/bestcoach/footer";
+import {
+  hero,
+  moments,
+  whyHeading,
+  whyParagraphs,
+  fillEyebrow,
+  fillHeading,
+  fillCards,
+  expectHeading,
+  timeline,
+  perksHeading,
+  perks,
+  cta,
+  testimonial,
+} from "@/lib/loyalty-data";
+
+export default function LoyaltyPage() {
+  return (
+    <div className="flex min-h-screen flex-col bg-[#001a26] text-white">
+      <TopBar />
+      <Navbar />
+      <main className="flex-1">
+        {/* ============ HERO ============ */}
+        <section className="bg-gradient-to-b from-[#020a12] via-[#04121e] to-[#03111c] px-6 py-20 text-center md:py-28">
+          <div className="font-extrabold uppercase tracking-[0.35em] text-[#f59e0b] text-sm">
+            {hero.brand}
+          </div>
+          <div className="mt-1 text-[11px] uppercase tracking-[0.3em] text-[#cfd8dc]">
+            {hero.brandSub}
+          </div>
+          <h1 className="mt-4 font-black leading-[0.95]">
+            <span className="block text-6xl text-white sm:text-7xl md:text-8xl lg:text-9xl">
+              {hero.line1}
+            </span>
+            <span className="mt-1 block text-5xl uppercase text-[#f59e0b] sm:text-6xl md:text-7xl">
+              {hero.line2}
+            </span>
+          </h1>
+          <p className="mt-6 text-lg tracking-wide text-[#e2e8f0] sm:text-xl">
+            {hero.tagline}
+          </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-4">
+            <Link
+              href="#moments"
+              className="rounded-full bg-[#f59e0b] px-7 py-3.5 text-xs font-bold uppercase tracking-wider text-[#1a0f00] shadow-[0_0_24px_rgba(245,158,11,0.35)] transition hover:-translate-y-0.5 sm:text-sm"
+            >
+              {hero.ctaPrimary}
+            </Link>
+            <button className="rounded-full border border-[#4b5b66] bg-transparent px-7 py-3.5 text-xs font-bold uppercase tracking-wider text-white transition hover:-translate-y-0.5 sm:text-sm">
+              {hero.ctaSecondary}
+            </button>
+          </div>
+          <div className="mt-14 flex flex-col items-center text-[11px] uppercase tracking-[0.3em] text-[#7f93a1]">
+            {hero.scrollHint}
+            <ArrowDown className="mt-2 size-4 text-[#9fb3c0]" />
+          </div>
+        </section>
+
+        {/* ============ TEAM MOMENTS MASONRY ============ */}
+        <section
+          id="moments"
+          className="bg-gradient-to-b from-[#07293f] via-[#0a3049] to-[#082a41] px-6 py-16 md:py-24"
+        >
+          <div className="mx-auto grid max-w-4xl grid-cols-2 gap-4 sm:grid-cols-3">
+            {/* tall image card */}
+            <div className="row-span-1 min-h-[220px] overflow-hidden rounded-2xl bg-[#0f3c58] p-3 shadow-[0_10px_24px_rgba(0,0,0,0.25)]">
+              <img
+                src={moments[0].image}
+                alt={moments[0].caption}
+                className="h-full w-full rounded-xl object-cover"
+              />
+            </div>
+            {moments.slice(1).map((m, i) => (
+              <div
+                key={i}
+                className={`min-h-[220px] rounded-2xl bg-[#0f3c58] p-4 shadow-[0_10px_24px_rgba(0,0,0,0.25)] ${
+                  i === moments.length - 2 ? "col-span-2 min-h-[240px] sm:col-span-3" : ""
+                }`}
+              >
+                <p className="text-xs font-semibold text-[#b9cdd9]">{m.caption}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ============ WHY ============ */}
+        <section className="bg-black px-6 py-20 text-center md:py-24">
+          <h2 className="mx-auto max-w-xl text-3xl font-extrabold leading-tight sm:text-4xl">
+            {whyHeading}
+          </h2>
+          <div className="mx-auto mt-6 max-w-xl space-y-5">
+            {whyParagraphs.map((p, i) => (
+              <p key={i} className="text-sm leading-relaxed text-[#d7dee3]">
+                {p}
+              </p>
+            ))}
+          </div>
+        </section>
+
+        {/* ============ QUOTE / FILL ============ */}
+        <section className="bg-gradient-to-b from-[#0a3350] to-[#0c3c59] px-6 py-24 text-center md:py-28">
+          <div className="text-xs font-bold uppercase tracking-[0.25em] text-[#f59e0b]">
+            {fillEyebrow}
+          </div>
+          <h2 className="mt-4 text-4xl font-black leading-[1.05] sm:text-5xl md:text-6xl">
+            <span className="mr-3 align-top font-serif text-[#f59e0b]">“</span>
+            {fillHeading}
+            <span className="ml-3 align-bottom font-serif text-[#f59e0b]">”</span>
+          </h2>
+          <div className="mx-auto mt-16 grid max-w-3xl grid-cols-1 gap-4 text-left sm:grid-cols-2 lg:grid-cols-3">
+            {fillCards.map((c, i) => (
+              <div
+                key={i}
+                className="min-h-[180px] rounded-2xl bg-[#0f3c58] p-4 shadow-[0_10px_24px_rgba(0,0,0,0.25)]"
+              >
+                <p className="text-xs font-semibold text-[#b9cdd9]">{c.caption}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ============ WHAT TO EXPECT TIMELINE ============ */}
+        <section className="bg-white px-6 py-24 text-[#1a1a1a] md:py-28">
+          <h2 className="mx-auto mb-16 max-w-xl text-center text-3xl font-extrabold text-[#111] sm:text-4xl">
+            {expectHeading}
+          </h2>
+          <div className="relative mx-auto max-w-2xl">
+            {/* vertical orange line */}
+            <div className="absolute bottom-10 left-[29px] top-8 w-[3px] bg-[#f59e0b]" />
+            <div className="space-y-14">
+              {timeline.map((s) => (
+                <div key={s.num} className="relative flex gap-6">
+                  <div className="relative z-10 flex size-15 shrink-0 items-center justify-center rounded-full bg-[#f59e0b] text-lg font-extrabold text-white shadow-[0_6px_16px_rgba(245,158,11,0.4)]">
+                    {s.num}
+                  </div>
+                  <div className="pt-3">
+                    <h3 className="text-xl font-extrabold text-[#111]">
+                      <span className="mr-2">{s.emoji}</span>
+                      {s.title}
+                    </h3>
+                    <p className="mt-2 text-sm leading-relaxed text-[#4b5563]">
+                      {s.desc}
+                    </p>
+                    {s.note && (
+                      <p className="mt-2 text-sm italic text-[#6b7280]">{s.note}</p>
+                    )}
+                    {s.list && (
+                      <ul className="mt-2 list-disc pl-5 text-sm leading-relaxed text-[#4b5563]">
+                        {s.list.map((li, i) => (
+                          <li key={i}>{li}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ============ PERKS & BENEFITS ============ */}
+        <section className="bg-black px-6 py-20 md:py-24">
+          <h2 className="mb-14 text-center text-3xl font-extrabold sm:text-4xl">
+            {perksHeading}
+          </h2>
+          <div className="mx-auto grid max-w-4xl grid-cols-1 gap-8 sm:grid-cols-2 sm:gap-x-12">
+            {perks.map((p, i) => (
+              <div key={i} className="flex items-start gap-4">
+                <div className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-[#262626] bg-[#141414] text-xl">
+                  {p.emoji}
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-[#f59e0b]">{p.title}</h4>
+                  <p className="mt-1.5 text-sm leading-relaxed text-[#b8c0c6]">
+                    {p.desc}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ============ CTA ============ */}
+        <section className="bg-[radial-gradient(1200px_500px_at_50%_0%,#155273_0%,#0c3c59_45%,#08293f_100%)] px-6 py-24 text-center md:py-28">
+          <h2 className="mx-auto max-w-xl text-3xl font-extrabold leading-tight text-[#f59e0b] sm:text-4xl md:text-5xl">
+            {cta.heading}
+          </h2>
+          <div className="mx-auto mt-6 max-w-lg space-y-4">
+            {cta.paragraphs.map((p, i) => (
+              <p key={i} className="text-sm leading-relaxed text-[#dce6ec] sm:text-base">
+                {p}
+              </p>
+            ))}
+          </div>
+          <p className="mt-7 text-base font-semibold italic text-[#dce6ec]">
+            {cta.motto}
+          </p>
+          <Link
+            href="/signup"
+            className="mt-9 inline-block rounded-full bg-[#f59e0b] px-10 py-4 text-sm font-bold uppercase tracking-wider text-[#1a0f00] shadow-[0_0_24px_rgba(245,158,11,0.35)] transition hover:-translate-y-0.5"
+          >
+            {cta.button} <ArrowRight className="ml-1 inline size-4" />
+          </Link>
+        </section>
+
+        {/* ============ TESTIMONIAL ============ */}
+        <section className="bg-gradient-to-b from-[#04101b] to-[#020a12] px-6 py-16 md:py-20">
+          <div className="relative mx-auto max-w-3xl rounded-3xl bg-gradient-to-br from-[#0e3854] to-[#0a2c44] p-10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] md:p-14">
+            <span className="block font-serif text-5xl leading-none text-[#f59e0b]">
+              ”
+            </span>
+            <blockquote className="mx-auto max-w-xl text-base font-semibold italic leading-relaxed text-[#eef4f8] md:text-lg">
+              {testimonial.quote}
+            </blockquote>
+            <div className="mt-7 text-base font-extrabold">{testimonial.who}</div>
+            <div className="mt-1.5 text-xs text-[#9db4c2]">{testimonial.role}</div>
+            <Link
+              href="/team"
+              className="mt-5 inline-block rounded-lg bg-[#f59e0b] px-4 py-2 text-xs font-bold text-[#1a0f00]"
+            >
+              {testimonial.readMore} →
+            </Link>
+          </div>
+          {/* dots */}
+          <div className="mt-12 flex justify-center gap-2">
+            <span className="size-2.5 rounded-full bg-[#28506a]" />
+            <span className="size-2.5 rounded-full bg-[#28506a]" />
+            <span className="size-2.5 rounded-full bg-[#f59e0b]" />
+            <span className="size-2.5 rounded-full bg-[#28506a]" />
+          </div>
+        </section>
+      </main>
+      <Footer />
+    </div>
+  );
+}

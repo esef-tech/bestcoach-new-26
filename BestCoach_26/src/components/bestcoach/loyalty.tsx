@@ -46,7 +46,7 @@ export function Loyalty() {
                   size="lg"
                   className="h-12 bg-accent text-accent-foreground hover:bg-accent/85"
                 >
-                  <Link href="#contact">
+                  <Link href="/loyalty">
                     Join the Loyalty Project
                     <ArrowRight className="size-4" />
                   </Link>
