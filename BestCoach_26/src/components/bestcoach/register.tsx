@@ -102,7 +102,7 @@ export function Register() {
           className="flex flex-col gap-5"
         >
           <Badge className="w-fit bg-primary/10 text-primary border-primary/20">
-             Bestcoach music
+            Bestcoach music
           </Badge>
           <h2
             id="register-heading"

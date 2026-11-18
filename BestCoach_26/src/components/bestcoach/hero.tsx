@@ -96,7 +96,7 @@ export function Hero() {
           <div className="relative overflow-hidden rounded-3xl border border-primary/10 bg-card shadow-2xl">
             <div className="aspect-[4/3] w-full">
               <SafeImage
-                src="/bestcoach-hero.jpg"
+                src="https://bestcoach-front.vercel.app/static/media/Coach.9f8dc9ce950601b9cc93.webp"
                 fallbackSrc={packages[1].img}
                 alt="A Bestcoach Music lesson in progress"
                 className="h-full w-full object-cover"
