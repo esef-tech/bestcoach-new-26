@@ -25,7 +25,6 @@ export default function Home() {
         <Services />
         <About />
         <Events />
-        <Loyalty />
         <Register />
         <Contact />
       </main>
