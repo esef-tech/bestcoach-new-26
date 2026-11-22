@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { SessionProvider } from "@/components/session-provider";
 import { ActivityTracker } from "@/components/activity-tracker";
 import { NotificationProvider } from "@/components/notification-provider";
+import { LanguageProvider } from "@/components/language-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -69,12 +70,14 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <SessionProvider>
+            <LanguageProvider> 
             <NotificationProvider>
               <ActivityTracker />
               {children}
               <Toaster />
               <SonnerToaster richColors position="top-right" />
             </NotificationProvider>
+            </LanguageProvider> 
           </SessionProvider>
         </ThemeProvider>
       </body>

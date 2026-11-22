@@ -5,25 +5,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/components/theme-provider";
 import {
-  Menu,
-  Sun,
-  Moon,
-  ChevronDown,
-  CalendarDays,
-  Building2,
-  Home,
-  Music,
-  Users,
-  Info,
-  Phone,
-  LogOut,
-  UserRound,
-  Settings,
-  ShoppingBag,
-  Briefcase,
-  Heart,
-  Award,
+  Menu, Sun, Moon, ChevronDown, CalendarDays, Building2, Home, Music, Users,
+  Info, Phone, LogOut, UserRound, Settings, ShoppingBag, Briefcase, Heart, Award,
+  Globe, LifeBuoy, LogIn, Check, Handshake, HelpCircle, CreditCard, 
+  type LucideIcon,
 } from "lucide-react";
+import { useLang } from "@/components/language-provider";
+import { LANG_LABELS, LANG_CODES } from "@/lib/dictionaries";
 import { useSession, signOut } from "next-auth/react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -49,14 +37,16 @@ import { NotificationBell } from "./notification-bell";
 import { events } from "@/lib/data";
 
 const TEAM_PAGE_HREF = "/team";
-const NAV_LINKS = [
-  { label: "Home", href: "/#home", icon: Home },
-  { label: "Community", href: "/#events", icon: Users },
-  {label: "Shop", href: "/shop", icon: ShoppingBag},
+const NAV_LINKS: { tKey: "home" | "community" | "shop" | "team"; href: string; icon: LucideIcon }[] = [
+  { tKey: "home", href: "#home", icon: Home },
+  { tKey: "community", href: "#events", icon: Users },
+  { tKey: "shop", href: "/shop", icon: ShoppingBag },
+  { tKey: "team", href: "/team", icon: Users },
 ];
 
 export function Navbar() {
   const router = useRouter();
+  const { t, lang, setLang } = useLang();
   const { theme, setTheme } = useTheme();
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -170,12 +160,12 @@ export function Navbar() {
         {/* Desktop nav */}
         <ul className="hidden items-center gap-1 md:flex">
           {NAV_LINKS.map((l) => (
-            <li key={l.label}>
+            <li key={t.nav[l.tKey]}>
               <Link
                 href={l.href}
                 className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-foreground/80 hover:text-primary hover:bg-accent/30 transition-colors"
               >
-                {l.label}
+                {t.nav[l.tKey]}
               </Link>
             </li>
           ))}
@@ -280,6 +270,65 @@ export function Navbar() {
           </Button>
           {authenticated && <NotificationBell />}
           <CartDrawer />
+  {/* ===== Language dropdown (always visible) ===== */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="hidden h-9 items-center gap-1.5 rounded-full px-3 text-sm font-medium text-foreground/80 hover:text-primary hover:bg-accent/30 transition-colors sm:inline-flex">
+                <Globe className="size-4 text-amber-500" />
+                {LANG_LABELS[lang]}
+                <ChevronDown className="size-3.5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuLabel className="flex items-center gap-2 text-xs">
+                <Globe className="size-3.5" /> Language
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {LANG_CODES.map((code) => (
+                <DropdownMenuItem
+                  key={code}
+                  onClick={() => setLang(code)}
+                  className="flex items-center justify-between"
+                >
+                  <span>{LANG_LABELS[code]}</span>
+                  {lang === code && <Check className="size-4 text-green-600" />}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* ===== Support dropdown (always visible) ===== */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="hidden h-9 items-center gap-1.5 rounded-full px-3 text-sm font-medium text-foreground/80 hover:text-primary hover:bg-accent/30 transition-colors sm:inline-flex">
+                <LifeBuoy className="size-4 text-amber-500" />
+                {t.nav.support}
+                <ChevronDown className="size-3.5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel className="flex items-center gap-2 text-xs">
+                <LifeBuoy className="size-3.5" /> {t.nav.support}
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/help" className="flex items-center gap-2">
+                  <HelpCircle className="size-4" /> {t.nav.helpCenter}
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/#programs" className="flex items-center gap-2">
+                  <CreditCard className="size-4" /> {t.nav.subscriptionPlans}
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/#contact" className="flex items-center gap-2">
+                  <Handshake className="size-4" /> {t.nav.partnerSolutions}
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
 
           {authenticated ? (
             <DropdownMenu>
@@ -338,23 +387,31 @@ export function Navbar() {
             </DropdownMenu>
           ) : (
             <>
-              <Button
-                variant="outline"
-                size="sm"
-                asChild
-                className="hidden h-9 sm:inline-flex"
-              >
-                <Link href="/signin">Sign In</Link>
-              </Button>
-              <Button
-                size="sm"
-                asChild
-                className="hidden h-9 bg-accent text-accent-foreground hover:bg-accent/85 sm:inline-flex"
-              >
-                <Link href="/signup">
-                  <Music className="size-4" /> Sign Up
-                </Link>
-              </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="hidden h-9 items-center gap-1.5 rounded-full bg-[#00394f] px-4 text-sm font-bold text-white transition-colors hover:bg-[#00293a] sm:inline-flex">
+                  <LogIn className="size-4" />
+                  {t.nav.login}
+                  <ChevronDown className="size-3.5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64">
+                <DropdownMenuLabel className="flex items-center gap-2 text-xs">
+                   {t.nav.loginToAccess}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/signin" className="flex items-center gap-2">
+                    <Music className="size-4 text-amber-500" /> {t.nav.bestcoachPlatform}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/signin" className="flex items-center gap-2">
+                    <Award className="size-4 text-amber-500" /> {t.nav.tlpPlatform}
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             </>
           )}
 
@@ -507,19 +564,34 @@ export function Navbar() {
                   </>
                 ) : (
                   <>
-                    <Button asChild variant="outline" className="h-11 w-full">
-                      <Link href="/signin">Sign In</Link>
+                     <SheetClose asChild>
+                    <Button asChild className="h-11 w-full rounded-full bg-[#00394f] text-white hover:bg-[#00293a]">
+                      <Link href="/signin"><LogIn className="size-4" /> {t.nav.login}</Link>
                     </Button>
-                    <Button
-                      asChild
-                      className="h-11 w-full bg-accent text-accent-foreground hover:bg-accent/85"
-                    >
-                      <Link href="/signup">
-                        <Music className="size-4" /> Sign Up
-                      </Link>
-                    </Button>
+                  </SheetClose>
                   </>
                 )}
+                                {/* Support section */}
+                <p className="mt-3 px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t.nav.support}</p>
+                <SheetClose asChild><Link href="/help" className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm hover:bg-accent/30"><HelpCircle className="size-4" /> {t.nav.helpCenter}</Link></SheetClose>
+                <SheetClose asChild><Link href="/#programs" className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm hover:bg-accent/30"><CreditCard className="size-4" /> {t.nav.subscriptionPlans}</Link></SheetClose>
+                <SheetClose asChild><Link href="/#contact" className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm hover:bg-accent/30"><Handshake className="size-4" /> {t.nav.partnerSolutions}</Link></SheetClose>
+
+                {/* Login section */}
+                <p className="mt-3 px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t.nav.loginToAccess}</p>
+                <SheetClose asChild><Link href="/signin" className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm hover:bg-accent/30"><Music className="size-4 text-amber-500" /> {t.nav.bestcoachPlatform}</Link></SheetClose>
+                <SheetClose asChild><Link href="/signin" className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm hover:bg-accent/30"><Award className="size-4 text-amber-500" /> {t.nav.tlpPlatform}</Link></SheetClose>
+
+                {/* Language grid */}
+                <p className="mt-3 px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Language</p>
+                <div className="grid grid-cols-2 gap-1 px-2 py-1">
+                  {LANG_CODES.map((code) => (
+                    <button key={code} onClick={() => setLang(code)} className={`flex items-center justify-between rounded-md px-2 py-1.5 text-xs font-medium transition ${lang === code ? "bg-[#00394f] text-white" : "hover:bg-accent/30"}`}>
+                      {LANG_LABELS[code]}
+                      {lang === code && <Check className="size-3" />}
+                    </button>
+                  ))}
+                </div>
               </div>
             </SheetContent>
           </Sheet>
