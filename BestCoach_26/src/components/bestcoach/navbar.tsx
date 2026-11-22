@@ -37,11 +37,10 @@ import { NotificationBell } from "./notification-bell";
 import { events } from "@/lib/data";
 
 const TEAM_PAGE_HREF = "/team";
-const NAV_LINKS: { tKey: "home" | "community" | "shop" | "team"; href: string; icon: LucideIcon }[] = [
+const NAV_LINKS: { tKey: "home" | "community" | "shop"; href: string; icon: LucideIcon }[] = [
   { tKey: "home", href: "#home", icon: Home },
   { tKey: "community", href: "#events", icon: Users },
   { tKey: "shop", href: "/shop", icon: ShoppingBag },
-  { tKey: "team", href: "/team", icon: Users },
 ];
 
 export function Navbar() {
